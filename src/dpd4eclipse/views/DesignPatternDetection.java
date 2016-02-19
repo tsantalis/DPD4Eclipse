@@ -30,12 +30,15 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
+import org.eclipse.ui.texteditor.ITextEditor;
+import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -50,6 +53,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -334,8 +338,31 @@ public class DesignPatternDetection extends ViewPart {
 
 		doubleClickAction = new Action() {
 			public void run() {
-				ISelection selection = viewer.getSelection();
-				Object obj = ((IStructuredSelection)selection).getFirstElement();
+				IStructuredSelection selection = (IStructuredSelection)viewer.getSelection();
+				if(selection.getFirstElement() instanceof PatternInstance.Entry) {
+					PatternInstance.Entry entry = (PatternInstance.Entry)selection.getFirstElement();
+					if(entry.getRoleType().equals(RoleType.CLASS)) {
+						try {
+							String fullName = null;
+							if(entry.getElementName().contains("$")) {
+								//inner class
+								String enclosingClass = entry.getElementName().substring(0, entry.getElementName().indexOf("$"));
+								fullName = enclosingClass.replace(".", "/") + ".java";
+							}
+							else {
+								fullName = entry.getElementName().replace(".", "/") + ".java";
+							}
+							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, fullName);
+							if(sourceJavaElement != null) {
+								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
+							}
+						} catch (PartInitException e) {
+							e.printStackTrace();
+						} catch (JavaModelException e) {
+							e.printStackTrace();
+						}
+					}
+				}
 			}
 		};
 	}
@@ -464,6 +491,29 @@ public class DesignPatternDetection extends ViewPart {
 			e.printStackTrace();
 		}
 		return result;
+	}
+
+	private static ICompilationUnit getICompilationUnit(IJavaProject iJavaProject, String fullName) {
+		try {
+			IClasspathEntry[] classpathEntries = iJavaProject.getResolvedClasspath(true);
+			for(int i = 0; i < classpathEntries.length; i++){
+				IClasspathEntry entry = classpathEntries[i];
+
+				if(entry.getContentKind() == IPackageFragmentRoot.K_SOURCE){
+					IPath path = entry.getPath();  
+					if (path.toString().length() > iJavaProject.getProject().getName().length() + 2) {
+						String fullPath = path.toString().substring(iJavaProject.getProject().getName().length() + 2) + "/" + fullName;
+
+						ICompilationUnit iCompilationUnit = (ICompilationUnit)JavaCore.create(iJavaProject.getProject().getFile(fullPath));
+						if (iCompilationUnit != null && iCompilationUnit.exists())
+							return iCompilationUnit;
+					}
+				}
+			}
+		} catch (JavaModelException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	/**
