@@ -2,6 +2,9 @@ package gr.uom.java.bytecode;
 
 import java.io.*;
 import java.util.*;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.util.TraceSignatureVisitor;
@@ -11,27 +14,56 @@ public class BytecodeReader {
 
 	private SystemObject so;
 
-	public BytecodeReader(File dir) {
+	public BytecodeReader(File dir, IProgressMonitor monitor) {
 		this.so = new SystemObject();
-		recurse(dir);
+		if(monitor != null)
+			monitor.beginTask("Parsing selected Java Project", getNumberOfClassFiles(dir));
+		recurse(dir, monitor);
+		if(monitor != null)
+			monitor.done();
 	}
-	
-	private void recurse(File file) {
-		
+
+	private void recurse(File file, IProgressMonitor monitor) {
 		if(file.isDirectory()) {
 			File files[] = file.listFiles();
             for (File afile : files) {
                 if (afile.isDirectory())
-                    recurse(afile);
+                    recurse(afile, monitor);
                 else if (afile.getName().toLowerCase().endsWith(".class")) {
+                	if(monitor != null && monitor.isCanceled())
+		    			throw new OperationCanceledException();
                     so.addClass(parseBytecode(afile));
+                    if(monitor != null)
+						monitor.worked(1);
+                }
+            }
+		}
+		else if(file.getName().toLowerCase().endsWith(".class")) {
+			if(monitor != null && monitor.isCanceled())
+    			throw new OperationCanceledException();
+			so.addClass(parseBytecode(file));
+			if(monitor != null)
+				monitor.worked(1);
+		}
+	}
+
+	private static int getNumberOfClassFiles(File file) {
+		int count = 0;
+		if(file.isDirectory()) {
+			File files[] = file.listFiles();
+            for (File afile : files) {
+                if (afile.isDirectory())
+                	count += getNumberOfClassFiles(afile);
+                else if (afile.getName().toLowerCase().endsWith(".class")) {
+                    count++;
                 }
             }
 		}
 		else if(file.getName().toLowerCase().endsWith(".class"))
-			so.addClass(parseBytecode(file));
+			count++;
+		return count;
 	}
-	
+
 	private ClassObject parseBytecode(File file) {
 		final ClassObject co = new ClassObject();
 		try {
@@ -47,6 +79,8 @@ public class BytecodeReader {
     			co.setInterface(true);
             else if ((cn.access & Opcodes.ACC_ABSTRACT) != 0)
     			co.setAbstract(true);
+            else if ((cn.access & Opcodes.ACC_ENUM) != 0)
+            	co.setEnum(true);
 
             if ((cn.access & Opcodes.ACC_PUBLIC) != 0)
                 co.setAccess(Access.PUBLIC);

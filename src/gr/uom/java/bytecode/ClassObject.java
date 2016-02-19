@@ -17,6 +17,7 @@ public class ClassObject {
 	private boolean _abstract;
     private boolean _interface;
     private boolean _static;
+    private boolean _enum;
     private Access access;
 
     public ClassObject() {
@@ -143,11 +144,19 @@ public class ClassObject {
     }
 
     public boolean isStatic() {
-        return _static;
+        return this._static;
     }
 
     public void setStatic(boolean s) {
-        _static = s;
+        this._static = s;
+    }
+    
+    public boolean isEnum() {
+    	return this._enum;
+    }
+    
+    public void setEnum(boolean e) {
+    	this._enum = e;
     }
     
     public boolean implementsInterface(String i) {

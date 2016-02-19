@@ -18,6 +18,7 @@ import gr.uom.java.pattern.SystemGenerator;
 import gr.uom.java.pattern.inheritance.Enumeratable;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -27,6 +28,7 @@ import java.util.SortedSet;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.*;
+import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
@@ -34,6 +36,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
@@ -45,9 +48,9 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 
 
 /**
@@ -254,7 +257,6 @@ public class DesignPatternDetection extends ViewPart {
 		column0.setText("Pattern");
 		column0.setResizable(true);
 		column0.pack();
-		
 		viewer.expandAll();
 
 		// Create the help context id for the viewer's control
@@ -282,12 +284,24 @@ public class DesignPatternDetection extends ViewPart {
 
 				buildProject(activeProject, new NullProgressMonitor());
 				try {
-					IPath outputLocation = activeProject.getOutputLocation();
+					String relativePathToOutputLocation = activeProject.getOutputLocation().toOSString();
+					String relativePathToProject = activeProject.getPath().toOSString();
 					String pathToProject = activeProject.getResource().getLocation().toOSString();
-					File filePathToProject = new File(pathToProject);
-					patternResults = detectDesignPatternInstances(filePathToProject);
+					String pathToOutputLocation = pathToProject.replace(relativePathToProject, relativePathToOutputLocation);
+					final File filePathToProject = new File(pathToOutputLocation);
+					IWorkbench wb = PlatformUI.getWorkbench();
+					IProgressService ps = wb.getProgressService();
+					ps.busyCursorWhile(new IRunnableWithProgress() {
+						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							patternResults = detectDesignPatternInstances(filePathToProject, monitor);
+						}
+					});
 					viewer.setContentProvider(new ViewContentProvider());
 				} catch (JavaModelException e) {
+					e.printStackTrace();
+				} catch (InvocationTargetException e) {
+					e.printStackTrace();
+				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}
@@ -313,8 +327,8 @@ public class DesignPatternDetection extends ViewPart {
 		});
 	}
 
-	private PatternResult[] detectDesignPatternInstances(File inputDir) {
-		BytecodeReader br = new BytecodeReader(inputDir);
+	private PatternResult[] detectDesignPatternInstances(File inputDir, IProgressMonitor monitor) {
+		BytecodeReader br = new BytecodeReader(inputDir, monitor);
 		SystemObject so = br.getSystemObject();
 		SystemGenerator sg = new SystemGenerator(so);
 		SortedSet<ClusterSet.Entry> clusterSet = sg.getClusterSet().getInvokingClusterSet();
@@ -322,8 +336,13 @@ public class DesignPatternDetection extends ViewPart {
 
 		PatternEnum[] patternEnum = PatternEnum.values();
 		PatternResult[] patternResults = new PatternResult[patternEnum.length];
+		monitor.beginTask("Detecting design patterns", patternEnum.length);
 		for(int i=0; i<patternEnum.length; i++) {
+			if(monitor != null && monitor.isCanceled())
+				throw new OperationCanceledException();
 			String patternName = patternEnum[i].toString();
+			if(monitor != null)
+				monitor.subTask(patternName);
 			PatternResult patternResult = new PatternResult(patternName);
 			PatternDescriptor patternDescriptor = PatternGenerator.getPattern(patternName);
 			if(patternDescriptor.getNumberOfHierarchies() == 0) {
@@ -386,7 +405,11 @@ public class DesignPatternDetection extends ViewPart {
 				}
 			}
 			patternResults[i] = patternResult;
+			if(monitor != null)
+				monitor.worked(1);
 		}
+		if(monitor != null)
+			monitor.done();
 		return patternResults;
 	}
 

@@ -191,14 +191,16 @@ public class SystemGenerator {
         while(it.hasNext()) {
             ClassObject co = it.next();
 
-            ListIterator<FieldObject> fieldIt = co.getFieldIterator();
-            while(fieldIt.hasNext()) {
-                FieldObject fo = fieldIt.next();
-                TypeObject type = fo.getType();
-                if(type.getClassType().equals(co.getName()) && fo.isStatic()) {
-                    m[counter][counter] = 1;
-                    behavioralData.addField(counter, counter, fo);
-                }
+            if(!co.isEnum()) {
+            	ListIterator<FieldObject> fieldIt = co.getFieldIterator();
+            	while(fieldIt.hasNext()) {
+            		FieldObject fo = fieldIt.next();
+            		TypeObject type = fo.getType();
+            		if(type.getClassType().equals(co.getName()) && fo.isStatic()) {
+            			m[counter][counter] = 1;
+            			behavioralData.addField(counter, counter, fo);
+            		}
+            	}
             }
             counter++;
         }
