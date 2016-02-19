@@ -5,11 +5,11 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            name="DesignPatternDetection"
+            name="Design Pattern Detection"
             id="DPD4Eclipse">
       </category>
       <view
-            name="DesignPatternDetection"
+            name="Design Pattern Detection"
             icon="icons/sample.gif"
             category="DPD4Eclipse"
             class="dpd4eclipse.views.DesignPatternDetection"

@@ -2,6 +2,7 @@ package gr.uom.java.pattern;
 
 import gr.uom.java.bytecode.FieldObject;
 import gr.uom.java.bytecode.MethodObject;
+import gr.uom.java.pattern.PatternInstance.RoleType;
 
 import java.util.*;
 
@@ -83,7 +84,7 @@ public class ClusterResult {
 	        		List<Entry> roleEntries = tuple.getRoleEntries();
 	        		PatternInstance instance = new PatternInstance();
 	        		for(Entry roleEntry : roleEntries) {
-	        			instance.addEntry(instance.new Entry(roleEntry.getRole(), roleEntry.getClassName(), roleEntry.getPosition()));
+	        			instance.addEntry(instance.new Entry(RoleType.CLASS, roleEntry.getRole(), roleEntry.getClassName(), roleEntry.getPosition()));
 	        		}
 	        		for(int i=0; i<roleEntries.size(); i++) {
 	        			Entry roleEntry1 = roleEntries.get(i);
@@ -93,13 +94,13 @@ public class ClusterResult {
 	        				if(patternDescriptor.getFieldRoleName() != null) {
 	        					Set<FieldObject> fields = (Set<FieldObject>)mergeOutput[0];
 	        					for(FieldObject field : fields) {
-	        						instance.addEntry(instance.new Entry(patternDescriptor.getFieldRoleName(), field.toString(), -1));
+	        						instance.addEntry(instance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.toString(), -1));
 	        					}
 	        				}
 	        				if(patternDescriptor.getMethodRoleName() != null) {
 	        					Set<MethodObject> methods = (Set<MethodObject>)mergeOutput[1];
 	        					for(MethodObject method : methods) {
-	        						instance.addEntry(instance.new Entry(patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+	        						instance.addEntry(instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
 	        					}
 	        				}
 	        			}

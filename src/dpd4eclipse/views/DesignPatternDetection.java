@@ -15,6 +15,7 @@ import gr.uom.java.pattern.PatternInstance;
 import gr.uom.java.pattern.PatternResult;
 import gr.uom.java.pattern.SimilarityAlgorithm;
 import gr.uom.java.pattern.SystemGenerator;
+import gr.uom.java.pattern.PatternInstance.RoleType;
 import gr.uom.java.pattern.inheritance.Enumeratable;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
@@ -77,6 +79,9 @@ public class DesignPatternDetection extends ViewPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "dpd4eclipse.views.DesignPatternDetection";
+	public static final Image CLASS = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_CLASS);
+	public static final Image METHOD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_PUBLIC);
+	public static final Image FIELD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_FIELD_PRIVATE);
 
 	private TreeViewer viewer;
 	private Action detectDesignPatterns;
@@ -173,7 +178,23 @@ public class DesignPatternDetection extends ViewPart {
 			}
 		}
 		public Image getColumnImage(Object obj, int index) {
-			return null;
+			Image image = null;
+			if(obj instanceof PatternInstance.Entry) {
+				PatternInstance.Entry entry = (PatternInstance.Entry)obj;
+				RoleType roleType = entry.getRoleType();
+				switch (index) {
+				case 0:
+					if(roleType.equals(RoleType.CLASS))
+						image = CLASS;
+					else if(roleType.equals(RoleType.FIELD))
+						image = FIELD;
+					else if(roleType.equals(RoleType.METHOD))
+						image = METHOD;
+				default:
+					break;
+				}
+			}
+			return image;
 		}
 		public Image getImage(Object obj) {
 			return null;
@@ -365,13 +386,13 @@ public class DesignPatternDetection extends ViewPart {
 				for(int j=0; j<systemMatrix.length; j++) {
 					if(systemMatrix[j][j] == 1.0) {
 						PatternInstance patternInstance = new PatternInstance();
-						patternInstance.addEntry(patternInstance.new Entry(patternDescriptor.getClassNameList().get(0),systemContainer.getClassNameList().get(j),j));
+						patternInstance.addEntry(patternInstance.new Entry(RoleType.CLASS, patternDescriptor.getClassNameList().get(0),systemContainer.getClassNameList().get(j),j));
 						if(behavioralData != null) {
 							if(patternDescriptor.getFieldRoleName() != null) {
 								Set<FieldObject> fields = behavioralData.getFields(j, j);
 								if(fields != null) {
 									for(FieldObject field : fields) {
-										patternInstance.addEntry(patternInstance.new Entry(patternDescriptor.getFieldRoleName(), field.toString(), -1));
+										patternInstance.addEntry(patternInstance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.toString(), -1));
 									}
 								}
 							}
@@ -379,7 +400,7 @@ public class DesignPatternDetection extends ViewPart {
 								Set<MethodObject> methods = behavioralData.getMethods(j, j);
 								if(methods != null) {
 									for(MethodObject method : methods) {
-										patternInstance.addEntry(patternInstance.new Entry(patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+										patternInstance.addEntry(patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
 									}
 								}
 							}

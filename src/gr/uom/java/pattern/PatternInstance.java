@@ -52,8 +52,10 @@ public class PatternInstance {
         private String roleName;
         private String elementName;
         private int position;
+        private RoleType roleType;
 
-        public Entry(String roleName, String elementName, int position) {
+        public Entry(RoleType roleType, String roleName, String elementName, int position) {
+        	this.roleType = roleType;
             this.roleName = roleName;
             this.elementName = elementName;
             this.position = position;
@@ -71,7 +73,11 @@ public class PatternInstance {
             return position;
         }
 
-        public boolean equals(Object o) {
+        public RoleType getRoleType() {
+			return roleType;
+		}
+
+		public boolean equals(Object o) {
             if(this == o) {
                 return true;
             }
@@ -98,5 +104,9 @@ public class PatternInstance {
         public String toString() {
             return roleName + ": " + elementName;
         }
+    }
+    
+    public enum RoleType {
+    	CLASS, METHOD, FIELD;
     }
 }
