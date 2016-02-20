@@ -27,14 +27,17 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.IType;
@@ -46,6 +49,7 @@ import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.jface.action.*;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.core.resources.IMarker;
@@ -55,7 +59,6 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
 
@@ -86,6 +89,7 @@ public class DesignPatternDetection extends ViewPart {
 	public static final Image CLASS = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_CLASS);
 	public static final Image METHOD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_PUBLIC);
 	public static final Image FIELD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_FIELD_PRIVATE);
+	private static final String MESSAGE_DIALOG_TITLE = "Design Pattern Detection";
 
 	private TreeViewer viewer;
 	private Action detectDesignPatterns;
@@ -93,10 +97,6 @@ public class DesignPatternDetection extends ViewPart {
 
 	private IJavaProject selectedProject;
 	private IJavaProject activeProject;
-	private IPackageFragmentRoot selectedPackageFragmentRoot;
-	private IPackageFragment selectedPackageFragment;
-	private ICompilationUnit selectedCompilationUnit;
-	private IType selectedType;
 	private PatternResult[] patternResults;
 
 	class ViewContentProvider implements ITreeContentProvider {
@@ -213,42 +213,30 @@ public class DesignPatternDetection extends ViewPart {
 				IJavaProject javaProject = null;
 				if(element instanceof IJavaProject) {
 					javaProject = (IJavaProject)element;
-					selectedPackageFragmentRoot = null;
-					selectedPackageFragment = null;
-					selectedCompilationUnit = null;
-					selectedType = null;
 				}
 				else if(element instanceof IPackageFragmentRoot) {
 					IPackageFragmentRoot packageFragmentRoot = (IPackageFragmentRoot)element;
 					javaProject = packageFragmentRoot.getJavaProject();
-					selectedPackageFragmentRoot = packageFragmentRoot;
-					selectedPackageFragment = null;
-					selectedCompilationUnit = null;
-					selectedType = null;
 				}
 				else if(element instanceof IPackageFragment) {
 					IPackageFragment packageFragment = (IPackageFragment)element;
 					javaProject = packageFragment.getJavaProject();
-					selectedPackageFragment = packageFragment;
-					selectedPackageFragmentRoot = null;
-					selectedCompilationUnit = null;
-					selectedType = null;
 				}
 				else if(element instanceof ICompilationUnit) {
 					ICompilationUnit compilationUnit = (ICompilationUnit)element;
 					javaProject = compilationUnit.getJavaProject();
-					selectedCompilationUnit = compilationUnit;
-					selectedPackageFragmentRoot = null;
-					selectedPackageFragment = null;
-					selectedType = null;
 				}
 				else if(element instanceof IType) {
 					IType type = (IType)element;
 					javaProject = type.getJavaProject();
-					selectedType = type;
-					selectedPackageFragmentRoot = null;
-					selectedPackageFragment = null;
-					selectedCompilationUnit = null;
+				}
+				else if(element instanceof IMethod) {
+					IMethod method = (IMethod)element;
+					javaProject = method.getJavaProject();
+				}
+				else if(element instanceof IField) {
+					IField field = (IField)element;
+					javaProject = field.getJavaProject();
 				}
 				if(javaProject != null && !javaProject.equals(selectedProject)) {
 					selectedProject = javaProject;
@@ -306,8 +294,6 @@ public class DesignPatternDetection extends ViewPart {
 		detectDesignPatterns = new Action() {
 			public void run() {
 				activeProject = selectedProject;
-
-				buildProject(activeProject, new NullProgressMonitor());
 				try {
 					String relativePathToOutputLocation = activeProject.getOutputLocation().toOSString();
 					String relativePathToProject = activeProject.getPath().toOSString();
@@ -318,7 +304,16 @@ public class DesignPatternDetection extends ViewPart {
 					IProgressService ps = wb.getProgressService();
 					ps.busyCursorWhile(new IRunnableWithProgress() {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							patternResults = detectDesignPatternInstances(filePathToProject, monitor);
+							try {
+								patternResults = detectDesignPatternInstances(filePathToProject, monitor);
+							} catch (CompilationErrorDetectedException e) {
+								Display.getDefault().asyncExec(new Runnable() {
+									public void run() {
+										MessageDialog.openInformation(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), MESSAGE_DIALOG_TITLE,
+												"Compilation errors were detected in the project. Fix the errors before using DPD.");
+									}
+								});
+							}
 						}
 					});
 					viewer.setContentProvider(new ViewContentProvider());
@@ -375,7 +370,11 @@ public class DesignPatternDetection extends ViewPart {
 		});
 	}
 
-	private PatternResult[] detectDesignPatternInstances(File inputDir, IProgressMonitor monitor) {
+	private PatternResult[] detectDesignPatternInstances(File inputDir, IProgressMonitor monitor) throws CompilationErrorDetectedException {
+		List<IMarker> markers = buildProject(activeProject, monitor);
+		if(!markers.isEmpty()) {
+			throw new CompilationErrorDetectedException(markers);
+		}
 		BytecodeReader br = new BytecodeReader(inputDir, monitor);
 		SystemObject so = br.getSystemObject();
 		SystemGenerator sg = new SystemGenerator(so);
@@ -384,7 +383,8 @@ public class DesignPatternDetection extends ViewPart {
 
 		PatternEnum[] patternEnum = PatternEnum.values();
 		PatternResult[] patternResults = new PatternResult[patternEnum.length];
-		monitor.beginTask("Detecting design patterns", patternEnum.length);
+		if(monitor != null)
+			monitor.beginTask("Detecting design patterns", patternEnum.length);
 		for(int i=0; i<patternEnum.length; i++) {
 			if(monitor != null && monitor.isCanceled())
 				throw new OperationCanceledException();
