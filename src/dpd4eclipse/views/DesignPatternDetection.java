@@ -45,6 +45,7 @@ import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
+import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
@@ -371,7 +372,6 @@ public class DesignPatternDetection extends ViewPart {
 						try {
 							String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
 							String methodFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
-							String methodName = methodFullSignature.substring(0, methodFullSignature.indexOf("("));
 							String compilationUnitName = null;
 							if(qualifiedClassName.contains("$")) {
 								//inner class
@@ -386,10 +386,13 @@ public class DesignPatternDetection extends ViewPart {
 								IType type = getIType(sourceJavaElement, qualifiedClassName);
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
 								if(type != null) {
-									ISourceRange sourceRange = type.getNameRange();
-									int offset = sourceRange.getOffset();
-									int length = sourceRange.getLength();
-									sourceEditor.setHighlightRange(offset, length, true);
+									IMethod method = getIMethod(type, methodFullSignature);
+									if(method != null) {
+										ISourceRange sourceRange = method.getNameRange();
+										int offset = sourceRange.getOffset();
+										int length = sourceRange.getLength();
+										sourceEditor.setHighlightRange(offset, length, true);
+									}
 								}
 							}
 						} catch (PartInitException e) {
@@ -468,9 +471,7 @@ public class DesignPatternDetection extends ViewPart {
 								Set<MethodObject> methods = behavioralData.getMethods(j, j);
 								if(methods != null) {
 									for(MethodObject method : methods) {
-										PatternInstance.Entry entry = patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1);
-										entry.setBytecodeSignature(method.getBytecodeSignature());
-										patternInstance.addEntry(entry);
+										patternInstance.addEntry(patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
 									}
 								}
 							}
@@ -557,6 +558,55 @@ public class DesignPatternDetection extends ViewPart {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private static IMethod getIMethod(IType iType, String methodFullSignature) throws JavaModelException {
+		String methodName = methodFullSignature.substring(0, methodFullSignature.indexOf("("));
+		String parameters = methodFullSignature.substring(methodFullSignature.indexOf("(")+1, methodFullSignature.indexOf(")"));
+		String[] qualifiedParameterTypes;
+		if(parameters.equals("")) {
+			qualifiedParameterTypes = new String[0];
+		}
+		else {
+			qualifiedParameterTypes = parameters.split(", ");
+		}
+		String qualifiedReturnType = methodFullSignature.substring(methodFullSignature.indexOf(":")+1, methodFullSignature.length());
+		for(IMethod iMethod : iType.getMethods()) {
+			if(iMethod.getElementName().equals(methodName)) {
+				String returnType = iMethod.getReturnType();
+				String[] parameterTypes = iMethod.getParameterTypes();
+				String nonQualifiedReturnType = Signature.toString(returnType);
+				boolean returnTypeMatch = false;
+				if(equalTypes(qualifiedReturnType, nonQualifiedReturnType)) {
+					returnTypeMatch = true;
+				}
+				boolean parameterTypesMatch = true;
+				if(parameterTypes.length == qualifiedParameterTypes.length) {
+					for(int i=0; i<qualifiedParameterTypes.length; i++) {
+						String nonQualifiedParameterType = Signature.toString(parameterTypes[i]);
+						String qualifiedParameterType = qualifiedParameterTypes[i];
+						if(!equalTypes(qualifiedParameterType, nonQualifiedParameterType)) {
+							parameterTypesMatch = false;
+						}
+					}
+				}
+				else {
+					parameterTypesMatch = false;
+				}
+				if(returnTypeMatch && parameterTypesMatch)
+					return iMethod;
+			}
+		}
+		return null;
+	}
+
+	private static boolean equalTypes(String qualifiedType, String nonQualifiedType) {
+		if(nonQualifiedType.contains("<") && nonQualifiedType.contains(">")) {
+			String nonQualifiedTypeWithoutGeneric = nonQualifiedType.substring(0, nonQualifiedType.indexOf("<")) +
+					nonQualifiedType.substring(nonQualifiedType.lastIndexOf(">")+1, nonQualifiedType.length());
+			return qualifiedType.endsWith(nonQualifiedTypeWithoutGeneric);
+		}
+		return qualifiedType.endsWith(nonQualifiedType);
 	}
 
 	private static IType getIType(ICompilationUnit iCompilationUnit, String qualifiedClassName) throws JavaModelException {

@@ -6,7 +6,6 @@ import java.util.ListIterator;
 
 public class ConstructorObject {
 
-	protected String bytecodeSignature;
     protected String name;
 	protected List<TypeObject> parameterList;
 	protected List<MethodInvocationObject> methodInvocationList;
@@ -24,15 +23,7 @@ public class ConstructorObject {
         this.access = Access.NONE;
     }
 
-    public void setBytecodeSignature(String signature) {
-		this.bytecodeSignature = signature;
-	}
-
-    public String getBytecodeSignature() {
-    	return bytecodeSignature;
-    }
-
-	public void setAccess(Access access) {
+    public void setAccess(Access access) {
         this.access = access;
     }
 
