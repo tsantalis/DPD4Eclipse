@@ -140,6 +140,7 @@ public class BytecodeReader {
                     constructorObject.setAccess(Access.PRIVATE);
 
                 if(methodNode.signature != null) {
+                	constructorObject.setBytecodeSignature(methodNode.signature);
                     TraceSignatureVisitor v = new TraceSignatureVisitor(ClassReader.SKIP_DEBUG);
                     SignatureReader r = new SignatureReader(methodNode.signature);
                     r.accept(v);

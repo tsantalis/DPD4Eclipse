@@ -35,11 +35,13 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
+import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -336,20 +338,59 @@ public class DesignPatternDetection extends ViewPart {
 				IStructuredSelection selection = (IStructuredSelection)viewer.getSelection();
 				if(selection.getFirstElement() instanceof PatternInstance.Entry) {
 					PatternInstance.Entry entry = (PatternInstance.Entry)selection.getFirstElement();
+					String elementFullName = entry.getElementName();
 					if(entry.getRoleType().equals(RoleType.CLASS)) {
 						try {
-							String fullName = null;
-							if(entry.getElementName().contains("$")) {
+							String compilationUnitName = null;
+							if(elementFullName.contains("$")) {
 								//inner class
-								String enclosingClass = entry.getElementName().substring(0, entry.getElementName().indexOf("$"));
-								fullName = enclosingClass.replace(".", "/") + ".java";
+								String enclosingClass = elementFullName.substring(0, elementFullName.indexOf("$"));
+								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
 							}
 							else {
-								fullName = entry.getElementName().replace(".", "/") + ".java";
+								compilationUnitName = elementFullName.replace(".", "/") + ".java";
 							}
-							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, fullName);
+							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
 							if(sourceJavaElement != null) {
+								IType type = getIType(sourceJavaElement, elementFullName);
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
+								if(type != null) {
+									ISourceRange sourceRange = type.getNameRange();
+									int offset = sourceRange.getOffset();
+									int length = sourceRange.getLength();
+									sourceEditor.setHighlightRange(offset, length, true);
+								}
+							}
+						} catch (PartInitException e) {
+							e.printStackTrace();
+						} catch (JavaModelException e) {
+							e.printStackTrace();
+						}
+					}
+					else if(entry.getRoleType().equals(RoleType.METHOD)) {
+						try {
+							String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
+							String methodFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
+							String methodName = methodFullSignature.substring(0, methodFullSignature.indexOf("("));
+							String compilationUnitName = null;
+							if(qualifiedClassName.contains("$")) {
+								//inner class
+								String enclosingClass = qualifiedClassName.substring(0, qualifiedClassName.indexOf("$"));
+								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
+							}
+							else {
+								compilationUnitName = qualifiedClassName.replace(".", "/") + ".java";
+							}
+							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
+							if(sourceJavaElement != null) {
+								IType type = getIType(sourceJavaElement, qualifiedClassName);
+								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
+								if(type != null) {
+									ISourceRange sourceRange = type.getNameRange();
+									int offset = sourceRange.getOffset();
+									int length = sourceRange.getLength();
+									sourceEditor.setHighlightRange(offset, length, true);
+								}
 							}
 						} catch (PartInitException e) {
 							e.printStackTrace();
@@ -427,7 +468,9 @@ public class DesignPatternDetection extends ViewPart {
 								Set<MethodObject> methods = behavioralData.getMethods(j, j);
 								if(methods != null) {
 									for(MethodObject method : methods) {
-										patternInstance.addEntry(patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+										PatternInstance.Entry entry = patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1);
+										entry.setBytecodeSignature(method.getBytecodeSignature());
+										patternInstance.addEntry(entry);
 									}
 								}
 							}
@@ -514,6 +557,47 @@ public class DesignPatternDetection extends ViewPart {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	private static IType getIType(ICompilationUnit iCompilationUnit, String qualifiedClassName) throws JavaModelException {
+		List<IType> allTypes = getAllTypesIncludingAnonymous(iCompilationUnit);
+		for(IType iType : allTypes) {
+			if(iType.getFullyQualifiedName().equals(qualifiedClassName)) {
+				return iType;
+			}
+		}
+		return null;
+	}
+
+	private static List<IType> getAllTypesIncludingAnonymous(ICompilationUnit iCompilationUnit) throws JavaModelException {
+		List<IType> allTypes = new ArrayList<IType>();
+		IType[] topLevelAndNestedTypes = iCompilationUnit.getAllTypes();
+		for(IType iType : topLevelAndNestedTypes) {
+			allTypes.add(iType);
+			for(IField iField : iType.getFields()) {
+				IJavaElement[] children = iField.getChildren();
+				for(IJavaElement element : children) {
+					if(element instanceof IType) {
+						IType type = (IType)element;
+						if(type.isAnonymous()) {
+							allTypes.add(type);
+						}
+					}
+				}
+			}
+			for(IMethod iMethod : iType.getMethods()) {
+				IJavaElement[] children = iMethod.getChildren();
+				for(IJavaElement element : children) {
+					if(element instanceof IType) {
+						IType type = (IType)element;
+						if(type.isAnonymous()) {
+							allTypes.add(type);
+						}
+					}
+				}
+			}
+		}
+		return allTypes;
 	}
 
 	/**

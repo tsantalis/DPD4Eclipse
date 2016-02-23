@@ -53,6 +53,7 @@ public class PatternInstance {
         private String elementName;
         private int position;
         private RoleType roleType;
+        private String bytecodeSignature;
 
         public Entry(RoleType roleType, String roleName, String elementName, int position) {
         	this.roleType = roleType;
@@ -75,6 +76,14 @@ public class PatternInstance {
 
         public RoleType getRoleType() {
 			return roleType;
+		}
+
+		public String getBytecodeSignature() {
+			return bytecodeSignature;
+		}
+
+		public void setBytecodeSignature(String bytecodeSignature) {
+			this.bytecodeSignature = bytecodeSignature;
 		}
 
 		public boolean equals(Object o) {

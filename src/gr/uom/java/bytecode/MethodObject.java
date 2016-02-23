@@ -42,6 +42,10 @@ public class MethodObject {
         _static = s;
     }
 
+    public String getBytecodeSignature() {
+    	return constructorObject.bytecodeSignature;
+    }
+
     public void setName(String name) {
         this.constructorObject.name = name;
     }

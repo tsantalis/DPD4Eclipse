@@ -100,7 +100,9 @@ public class ClusterResult {
 	        				if(patternDescriptor.getMethodRoleName() != null) {
 	        					Set<MethodObject> methods = (Set<MethodObject>)mergeOutput[1];
 	        					for(MethodObject method : methods) {
-	        						instance.addEntry(instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+	        						PatternInstance.Entry entry = instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1);
+									entry.setBytecodeSignature(method.getBytecodeSignature());
+	        						instance.addEntry(entry);
 	        					}
 	        				}
 	        			}
