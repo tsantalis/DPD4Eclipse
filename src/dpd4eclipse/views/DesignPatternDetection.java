@@ -601,6 +601,7 @@ public class DesignPatternDetection extends ViewPart {
 	}
 
 	private static boolean equalTypes(String qualifiedType, String nonQualifiedType) {
+		qualifiedType = qualifiedType.replaceAll("\\$", ".");
 		if(nonQualifiedType.contains("<") && nonQualifiedType.contains(">")) {
 			String nonQualifiedTypeWithoutGeneric = nonQualifiedType.substring(0, nonQualifiedType.indexOf("<")) +
 					nonQualifiedType.substring(nonQualifiedType.lastIndexOf(">")+1, nonQualifiedType.length());
