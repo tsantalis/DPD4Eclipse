@@ -387,12 +387,16 @@ public class DesignPatternDetection extends ViewPart {
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
 								if(type != null) {
 									IMethod method = getIMethod(type, methodFullSignature);
+									ISourceRange sourceRange = null;
 									if(method != null) {
-										ISourceRange sourceRange = method.getNameRange();
-										int offset = sourceRange.getOffset();
-										int length = sourceRange.getLength();
-										sourceEditor.setHighlightRange(offset, length, true);
+										sourceRange = method.getNameRange();
 									}
+									else {
+										sourceRange = type.getNameRange();
+									}
+									int offset = sourceRange.getOffset();
+									int length = sourceRange.getLength();
+									sourceEditor.setHighlightRange(offset, length, true);
 								}
 							}
 						} catch (PartInitException e) {
