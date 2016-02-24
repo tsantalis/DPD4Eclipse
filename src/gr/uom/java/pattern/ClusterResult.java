@@ -82,7 +82,7 @@ public class ClusterResult {
         if(!entryTupleSet.isEmpty()) {
 	        int maxRelationshipScore = entryTupleSet.first().getRelationshipScore();
 	        for(ClusterResult.EntryTuple tuple : entryTupleSet) {
-	        	if(tuple.getRelationshipScore() == maxRelationshipScore) {
+	        	if(tuple.getRelationshipScore() == maxRelationshipScore && tuple.getRelationshipScore() > 0) {
 	        		List<Entry> roleEntries = tuple.getRoleEntries();
 	        		PatternInstance instance = new PatternInstance();
 	        		for(Entry roleEntry : roleEntries) {
