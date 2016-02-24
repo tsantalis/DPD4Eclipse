@@ -598,7 +598,7 @@ public class SystemGenerator {
                     if(!discreteInvocations.contains(mio)) {
                         discreteInvocations.add(mio);
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                        if(pos != -1 && pos!=counter) {
+                        if(pos != -1 && counter != pos) {
                             //(i,j) increment
                             m[counter][pos] = m[counter][pos] + 1.0;
 
@@ -619,7 +619,7 @@ public class SystemGenerator {
                     if(!discreteInvocations.contains(mio)) {
                         discreteInvocations.add(mio);
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                        if(pos != -1 && pos!=counter) {
+                        if(pos != -1 && counter != pos) {
                             //(i,j) increment
                             m[counter][pos] = m[counter][pos] + 1.0;
 
@@ -898,7 +898,7 @@ public class SystemGenerator {
                     MethodInvocationObject mio = mii.next();
                     if(mio.getMethodName().equals("clone")) {
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                        if(pos != -1) {
+                        if(pos != -1 && counter != pos) {
                             m[counter][pos] = 1;
                             behavioralData.addMethod(counter, pos, mo);
                         }
@@ -915,8 +915,10 @@ public class SystemGenerator {
                     MethodInvocationObject mio = mii.next();
                     if(mio.getMethodName().equals("clone")) {
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                        if(pos != -1)
+                        if(pos != -1 && counter != pos) {
                             m[counter][pos] = 1;
+                        	behavioralData.addMethod(counter, pos, coo);
+                        }
                     }
                 }
             }
@@ -1030,7 +1032,7 @@ public class SystemGenerator {
                 	Set<FieldObject> fields = systemBehavioralData.getFields(systemI, systemJ);
                 	if(fields != null)
                 		hierarchiesBehavioralData.addFields(i, j, fields);
-                	Set<MethodObject> methods = systemBehavioralData.getMethods(systemI, systemJ);
+                	Set<AbstractMethodDeclaration> methods = systemBehavioralData.getMethods(systemI, systemJ);
                 	if(methods != null)
                 		hierarchiesBehavioralData.addMethods(i, j, methods);
                 }

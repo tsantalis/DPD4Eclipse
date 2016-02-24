@@ -1,7 +1,7 @@
 package gr.uom.java.pattern;
 
+import gr.uom.java.bytecode.AbstractMethodDeclaration;
 import gr.uom.java.bytecode.FieldObject;
-import gr.uom.java.bytecode.MethodObject;
 import gr.uom.java.pattern.PatternInstance.RoleType;
 
 import java.util.*;
@@ -33,7 +33,9 @@ public class ClusterResult {
         Iterator<ClusterResult.Entry> it = entrySet.iterator();
         while(it.hasNext()) {
             Entry entry = it.next();
-            if(entry.getScore() > 0.5) {
+            int divisor = patternDescriptor.getDivisor(entry.getRole());
+            double threshold = (double)(divisor-1)/(double)divisor;
+			if(entry.getScore() > threshold) {
                 if(roleMap.containsKey(entry.getRole())) {
                 	LinkedHashSet<ClusterResult.Entry> entrySet = roleMap.get(entry.getRole());
                 	entrySet.add(entry);
@@ -98,8 +100,8 @@ public class ClusterResult {
 	        					}
 	        				}
 	        				if(patternDescriptor.getMethodRoleName() != null) {
-	        					Set<MethodObject> methods = (Set<MethodObject>)mergeOutput[1];
-	        					for(MethodObject method : methods) {
+	        					Set<AbstractMethodDeclaration> methods = (Set<AbstractMethodDeclaration>)mergeOutput[1];
+	        					for(AbstractMethodDeclaration method : methods) {
 	        						instance.addEntry(instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
 	        					}
 	        				}
@@ -180,7 +182,7 @@ public class ClusterResult {
 
     private Object[] mergeBehavioralData(ClusterResult.Entry e1, ClusterResult.Entry e2) {
     	Set<FieldObject> fields = new LinkedHashSet<FieldObject>();
-    	Set<MethodObject> methods = new LinkedHashSet<MethodObject>();
+    	Set<AbstractMethodDeclaration> methods = new LinkedHashSet<AbstractMethodDeclaration>();
     	if(patternDescriptor.getIterativeSimilarAbstractMethodInvocationMatrix() != null) {
     		BehavioralData iterativeSimilarAbstractMethodInvocationBehavioralData = systemContainer.getIterativeSimilarAbstractMethodInvocationBehavioralData();
     		processBehavioralData(iterativeSimilarAbstractMethodInvocationBehavioralData, e1, e2, fields, methods);
@@ -220,7 +222,7 @@ public class ClusterResult {
     	return new Object[] {fields, methods};
     }
 
-	private void processBehavioralData(BehavioralData behavioralData, ClusterResult.Entry e1, ClusterResult.Entry e2, Set<FieldObject> fields, Set<MethodObject> methods) {
+	private void processBehavioralData(BehavioralData behavioralData, ClusterResult.Entry e1, ClusterResult.Entry e2, Set<FieldObject> fields, Set<AbstractMethodDeclaration> methods) {
 		Set<FieldObject> fields1 = behavioralData.getFields(e1.getPosition(), e2.getPosition());
 		if(fields1 != null) {
 			fields.addAll(fields1);
@@ -231,12 +233,12 @@ public class ClusterResult {
 				fields.addAll(fields2);
 			}
 		}
-		Set<MethodObject> methods1 = behavioralData.getMethods(e1.getPosition(), e2.getPosition());
+		Set<AbstractMethodDeclaration> methods1 = behavioralData.getMethods(e1.getPosition(), e2.getPosition());
 		if(methods1 != null) {
 			methods.addAll(methods1);
 		}
 		if(e1.getPosition() != e2.getPosition()) {
-			Set<MethodObject> methods2 = behavioralData.getMethods(e2.getPosition(), e1.getPosition());
+			Set<AbstractMethodDeclaration> methods2 = behavioralData.getMethods(e2.getPosition(), e1.getPosition());
 			if(methods2 != null) {
 				methods.addAll(methods2);
 			}

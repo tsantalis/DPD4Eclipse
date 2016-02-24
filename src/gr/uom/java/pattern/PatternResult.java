@@ -14,6 +14,7 @@ public class PatternResult {
 
 	public void addInstance(PatternInstance instance) {
 		instances.add(instance);
+		instance.setInstanceCounter(instances.size());
 	}
 	
 	public boolean containsInstance(PatternInstance instance) {

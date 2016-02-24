@@ -4,6 +4,7 @@ import java.util.*;
 
 public class PatternInstance {
     private Set<PatternInstance.Entry> entrySet;
+    private int instanceCounter;
 
     public PatternInstance() {
         entrySet = new LinkedHashSet<PatternInstance.Entry>();
@@ -21,6 +22,14 @@ public class PatternInstance {
         return entrySet.iterator();
     }
     
+	public int getInstanceCounter() {
+		return instanceCounter;
+	}
+
+	public void setInstanceCounter(int instanceCounter) {
+		this.instanceCounter = instanceCounter;
+	}
+
     public boolean equals(Object o) {
         if(this == o) {
             return true;

@@ -1,8 +1,8 @@
 package dpd4eclipse.views;
 
+import gr.uom.java.bytecode.AbstractMethodDeclaration;
 import gr.uom.java.bytecode.BytecodeReader;
 import gr.uom.java.bytecode.FieldObject;
-import gr.uom.java.bytecode.MethodObject;
 import gr.uom.java.bytecode.SystemObject;
 import gr.uom.java.pattern.BehavioralData;
 import gr.uom.java.pattern.ClusterResult;
@@ -166,7 +166,7 @@ public class DesignPatternDetection extends ViewPart {
 				PatternInstance patternInstance = (PatternInstance)obj;
 				switch (index) {
 				case 0:
-					return "Instance";
+					return "Instance " + patternInstance.getInstanceCounter();
 				default:
 					return "";
 				}
@@ -472,9 +472,9 @@ public class DesignPatternDetection extends ViewPart {
 								}
 							}
 							if(patternDescriptor.getMethodRoleName() != null) {
-								Set<MethodObject> methods = behavioralData.getMethods(j, j);
+								Set<AbstractMethodDeclaration> methods = behavioralData.getMethods(j, j);
 								if(methods != null) {
-									for(MethodObject method : methods) {
+									for(AbstractMethodDeclaration method : methods) {
 										patternInstance.addEntry(patternInstance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
 									}
 								}

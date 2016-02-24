@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-public class ConstructorObject {
+public class ConstructorObject implements AbstractMethodDeclaration {
 
     protected String name;
 	protected List<TypeObject> parameterList;

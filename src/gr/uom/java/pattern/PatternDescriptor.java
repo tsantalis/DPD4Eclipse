@@ -33,6 +33,11 @@ public class PatternDescriptor extends MatrixContainer {
         return 0;
     }
 
+	public int getDivisor(String roleName) {
+		int pos = classNameList.indexOf(roleName);
+		return getDivisor(pos);
+	}
+
     public int getNumberOfHierarchies() {
 		return this.numberOfHierarchies;
 	}

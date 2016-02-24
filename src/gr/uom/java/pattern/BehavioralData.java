@@ -5,35 +5,35 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import gr.uom.java.bytecode.AbstractMethodDeclaration;
 import gr.uom.java.bytecode.FieldObject;
-import gr.uom.java.bytecode.MethodObject;
 
 public class BehavioralData {
-	private Map<Position, Set<MethodObject>> methodData;
+	private Map<Position, Set<AbstractMethodDeclaration>> methodData;
 	private Map<Position, Set<FieldObject>> fieldData;
 	
 	public BehavioralData() {
-		this.methodData = new LinkedHashMap<Position, Set<MethodObject>>();
+		this.methodData = new LinkedHashMap<Position, Set<AbstractMethodDeclaration>>();
 		this.fieldData = new LinkedHashMap<Position, Set<FieldObject>>();
 	}
 	
-	public void addMethod(int row, int column, MethodObject mo) {
+	public void addMethod(int row, int column, AbstractMethodDeclaration mo) {
 		Position pos = new Position(row, column);
 		if(methodData.containsKey(pos)) {
-			Set<MethodObject> methods = methodData.get(pos);
+			Set<AbstractMethodDeclaration> methods = methodData.get(pos);
 			methods.add(mo);
 		}
 		else {
-			Set<MethodObject> methods = new LinkedHashSet<MethodObject>();
+			Set<AbstractMethodDeclaration> methods = new LinkedHashSet<AbstractMethodDeclaration>();
 			methods.add(mo);
 			methodData.put(pos, methods);
 		}
 	}
 	
-	public void addMethods(int row, int column, Set<MethodObject> methods) {
+	public void addMethods(int row, int column, Set<AbstractMethodDeclaration> methods) {
 		Position pos = new Position(row, column);
 		if(methodData.containsKey(pos)) {
-			Set<MethodObject> previousMethods = methodData.get(pos);
+			Set<AbstractMethodDeclaration> previousMethods = methodData.get(pos);
 			previousMethods.addAll(methods);
 		}
 		else {
@@ -41,7 +41,7 @@ public class BehavioralData {
 		}
 	}
 	
-	public Set<MethodObject> getMethods(int row, int column) {
+	public Set<AbstractMethodDeclaration> getMethods(int row, int column) {
 		Position pos = new Position(row, column);
 		return methodData.get(pos);
 	}

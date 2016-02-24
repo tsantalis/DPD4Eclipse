@@ -4,7 +4,7 @@ import java.util.ListIterator;
 import java.util.List;
 import java.util.ArrayList;
 
-public class MethodObject {
+public class MethodObject implements AbstractMethodDeclaration {
 
     private TypeObject returnType;
     private boolean _abstract;
