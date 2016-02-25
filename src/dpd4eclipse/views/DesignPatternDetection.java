@@ -405,6 +405,43 @@ public class DesignPatternDetection extends ViewPart {
 							e.printStackTrace();
 						}
 					}
+					else if(entry.getRoleType().equals(RoleType.FIELD)) {
+						try {
+							String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
+							String fieldFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
+							String compilationUnitName = null;
+							if(qualifiedClassName.contains("$")) {
+								//inner class
+								String enclosingClass = qualifiedClassName.substring(0, qualifiedClassName.indexOf("$"));
+								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
+							}
+							else {
+								compilationUnitName = qualifiedClassName.replace(".", "/") + ".java";
+							}
+							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
+							if(sourceJavaElement != null) {
+								IType type = getIType(sourceJavaElement, qualifiedClassName);
+								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
+								if(type != null) {
+									IField field = getIField(type, fieldFullSignature);
+									ISourceRange sourceRange = null;
+									if(field != null) {
+										sourceRange = field.getNameRange();
+									}
+									else {
+										sourceRange = type.getNameRange();
+									}
+									int offset = sourceRange.getOffset();
+									int length = sourceRange.getLength();
+									sourceEditor.setHighlightRange(offset, length, true);
+								}
+							}
+						} catch (PartInitException e) {
+							e.printStackTrace();
+						} catch (JavaModelException e) {
+							e.printStackTrace();
+						}
+					}
 				}
 			}
 		};
@@ -467,7 +504,7 @@ public class DesignPatternDetection extends ViewPart {
 								Set<FieldObject> fields = behavioralData.getFields(j, j);
 								if(fields != null) {
 									for(FieldObject field : fields) {
-										patternInstance.addEntry(patternInstance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.toString(), -1));
+										patternInstance.addEntry(patternInstance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.getSignature(), -1));
 									}
 								}
 							}
@@ -560,6 +597,20 @@ public class DesignPatternDetection extends ViewPart {
 			}
 		} catch (JavaModelException e) {
 			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static IField getIField(IType iType, String fieldFullSignature) throws JavaModelException {
+		String fieldName = fieldFullSignature.substring(0, fieldFullSignature.indexOf(":"));
+		String qualifiedType = fieldFullSignature.substring(fieldFullSignature.indexOf(":")+1, fieldFullSignature.length());
+		for(IField iField : iType.getFields()) {
+			if(iField.getElementName().equals(fieldName)) {
+				String nonQualifiedType = Signature.toString(iField.getTypeSignature());
+				if(equalTypes(qualifiedType, nonQualifiedType)) {
+					return iField;
+				}
+			}
 		}
 		return null;
 	}

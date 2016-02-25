@@ -497,7 +497,7 @@ public class SystemGenerator {
             				while(objectInstantiationIterator.hasNext()) {
             					String objectInstantiation = objectInstantiationIterator.next();
             					int pos = systemObject.getPositionInClassList(objectInstantiation);
-            					if(pos != -1 && belongInSameHierarchy(objectInstantiation, type.getClassType()) &&
+            					if(pos != -1 && counter != pos && belongInSameHierarchy(objectInstantiation, type.getClassType()) &&
             							childParentRelationship(objectInstantiation, type.getClassType())) {
             						m[counter][pos] = 1;
             						behavioralData.addField(counter, pos, fo);
@@ -514,7 +514,7 @@ public class SystemGenerator {
             						while(objectInstantiationIterator.hasNext()) {
                     					String objectInstantiation = objectInstantiationIterator.next();
                     					int pos = systemObject.getPositionInClassList(objectInstantiation);
-                    					if(pos != -1 && belongInSameHierarchy(objectInstantiation, type.getClassType()) &&
+                    					if(pos != -1 && counter != pos && belongInSameHierarchy(objectInstantiation, type.getClassType()) &&
                     							childParentRelationship(objectInstantiation, type.getClassType())) {
                     						m[counter][pos] = 1;
                     						behavioralData.addField(counter, pos, fo);

@@ -6,6 +6,7 @@ public class FieldObject {
     private TypeObject type;
     private boolean _static;
     private Access access;
+    private String className;
 
     public FieldObject(TypeObject type, String name) {
         this.type = type;
@@ -38,6 +39,14 @@ public class FieldObject {
         _static = s;
     }
 
+    public String getClassName() {
+		return className;
+	}
+
+	public void setClassName(String className) {
+		this.className = className;
+	}
+
     public boolean equals(Object o) {
         if(this == o) {
             return true;
@@ -52,6 +61,14 @@ public class FieldObject {
 
     public boolean equals(FieldInstructionObject fio) {
         return this.name.equals(fio.getName()) && this.type.getClassType().equals(fio.getClassType());
+    }
+
+    public String getSignature() {
+    	StringBuilder sb = new StringBuilder();
+        sb.append(className).append("::");
+        sb.append(name);
+        sb.append(":").append(type);
+        return sb.toString();
     }
 
     public String toString() {

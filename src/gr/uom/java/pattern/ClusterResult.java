@@ -96,7 +96,7 @@ public class ClusterResult {
 	        				if(patternDescriptor.getFieldRoleName() != null) {
 	        					Set<FieldObject> fields = (Set<FieldObject>)mergeOutput[0];
 	        					for(FieldObject field : fields) {
-	        						instance.addEntry(instance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.toString(), -1));
+	        						instance.addEntry(instance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.getSignature(), -1));
 	        					}
 	        				}
 	        				if(patternDescriptor.getMethodRoleName() != null) {

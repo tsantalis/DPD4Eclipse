@@ -114,6 +114,7 @@ public class BytecodeReader {
                         typeObject.setGeneric(declaration.substring(declaration.indexOf("<")+1,declaration.lastIndexOf(">")));
                 }
                 FieldObject fo = new FieldObject(typeObject, fieldNode.name);
+                fo.setClassName(co.getName());
 
                 if ((fieldNode.access & Opcodes.ACC_PUBLIC) != 0)
                     fo.setAccess(Access.PUBLIC);
