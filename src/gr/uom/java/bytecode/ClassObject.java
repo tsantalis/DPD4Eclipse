@@ -41,6 +41,16 @@ public class ClassObject {
         return null;
     }
 
+    public FieldObject getField(FieldInstructionObject fio) {
+    	ListIterator<FieldObject> fi = getFieldIterator();
+    	while(fi.hasNext()) {
+    		FieldObject fo = fi.next();
+    		if(fo.getSignature().equals(fio.getSignature()))
+    			return fo;
+    	}
+    	return null;
+    }
+
     public boolean hasFieldType(String className) {
         ListIterator<FieldObject> fi = getFieldIterator();
         while(fi.hasNext()) {

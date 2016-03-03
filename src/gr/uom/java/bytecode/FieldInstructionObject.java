@@ -24,6 +24,14 @@ public class FieldInstructionObject {
         return name;
     }
 
+    public String getSignature() {
+    	StringBuilder sb = new StringBuilder();
+        sb.append(ownerClass).append("::");
+        sb.append(name);
+        sb.append(":").append(classType);
+        return sb.toString();
+    }
+
     public boolean equals(Object o) {
         if(this == o) {
             return true;

@@ -67,7 +67,7 @@ public class FieldObject {
     	StringBuilder sb = new StringBuilder();
         sb.append(className).append("::");
         sb.append(name);
-        sb.append(":").append(type);
+        sb.append(":").append(type.getClassType());
         return sb.toString();
     }
 

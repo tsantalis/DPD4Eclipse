@@ -219,6 +219,10 @@ public class ClusterResult {
     		BehavioralData associationWithInheritanceBehavioralData = systemContainer.getAssociationWithInheritanceBehavioralData();
     		processBehavioralData(associationWithInheritanceBehavioralData, e1, e2, fields, methods);
     	}
+    	if(patternDescriptor.getAbstractMethodInvocationMatrix() != null) {
+    		BehavioralData abstractMethodInvocationBehavioralData = systemContainer.getAbstractMethodInvocationBehavioralData();
+    		processBehavioralData(abstractMethodInvocationBehavioralData, e1, e2, fields, methods);
+    	}
     	return new Object[] {fields, methods};
     }
 

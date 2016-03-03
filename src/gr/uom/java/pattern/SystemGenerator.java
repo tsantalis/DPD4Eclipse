@@ -31,7 +31,7 @@ public class SystemGenerator {
         this.matrixContainer.setAssociationMatrix(getAssociationMatrix());
         associationWithInheritanceMatrix();
         this.matrixContainer.setAbstractMatrix(getAbstractMatrix());
-        this.matrixContainer.setAbstractMethodInvocationMatrix(getAbstractMethodInvocationMatrix());
+        abstractMethodInvocationMatrix();
         doubleDispatchMatrix();
         similarAbstractMethodInvocationMatrix();
         similarMethodInvocationFromSiblingSubclassMatrix();
@@ -284,9 +284,10 @@ public class SystemGenerator {
         matrixContainer.setFactoryMethodBehavioralData(behavioralData);
     }
 
-    private double[][] getAbstractMethodInvocationMatrix() {
+    private void abstractMethodInvocationMatrix() {
         ListIterator<ClassObject> it = systemObject.getClassListIterator();
         double[][] m = new double[systemObject.getClassNumber()][systemObject.getClassNumber()];
+        BehavioralData behavioralData = new BehavioralData();
         int counter = 0;
 
         while(it.hasNext()) {
@@ -303,15 +304,34 @@ public class SystemGenerator {
                     if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName())) {
                         MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
                         if(temp != null && temp.isAbstract()) {
-                            m[counter][pos] = 1;
-                            //break;
+                        	List<FieldObject> fields = new ArrayList<FieldObject>();
+                        	ListIterator<FieldInstructionObject> fii = mo.getFieldInstructionIterator();
+                            while(fii.hasNext()) {
+                            	FieldInstructionObject fio = fii.next();
+                            	int posX = systemObject.getPositionInClassList(fio.getOwnerClass());
+                            	if(posX != -1 && fio.getClassType().equals(mio.getOriginClassName())) {
+                            		FieldObject tempX = co.getField(fio);
+                            		if(tempX != null && !fields.contains(tempX)) {
+                            			fields.add(tempX);
+                            		}
+                            	}
+                            }
+                            if(!fields.isEmpty()) {
+                            	m[counter][pos] = 1;
+                            	behavioralData.addMethod(counter, pos, mo);
+                            	for(FieldObject field : fields) {
+                            		behavioralData.addField(counter, pos, field);
+                            	}
+                            	//break;
+                            }
                         }
                     }
                 }
             }
             counter++;
         }
-        return m;
+        matrixContainer.setAbstractMethodInvocationMatrix(m);
+        matrixContainer.setAbstractMethodInvocationBehavioralData(behavioralData);
     }
 
     private void doubleDispatchMatrix() {
@@ -962,8 +982,9 @@ public class SystemGenerator {
 
         Object[] abstractMethodInvocationOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
         		getMatrixContainer().getAbstractMethodInvocationMatrix(),
-        		null);
+        		getMatrixContainer().getAbstractMethodInvocationBehavioralData());
         hierarchiesMatrixContainer.setAbstractMethodInvocationMatrix((double[][])abstractMethodInvocationOutput[0]);
+        hierarchiesMatrixContainer.setAbstractMethodInvocationBehavioralData((BehavioralData)abstractMethodInvocationOutput[1]);
 
         Object[] similarAbstractMethodInvocationOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
         		getMatrixContainer().getSimilarAbstractMethodInvocationMatrix(),

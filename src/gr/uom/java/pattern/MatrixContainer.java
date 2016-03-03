@@ -9,6 +9,7 @@ public class MatrixContainer {
 	protected BehavioralData associationWithInheritanceBehavioralData;
 	protected double[][] abstractMatrix;
 	protected double[][] abstractMethodInvocationMatrix;
+	protected BehavioralData abstractMethodInvocationBehavioralData;
 	protected double[][] similarAbstractMethodInvocationMatrix;
 	protected BehavioralData similarAbstractMethodInvocationBehavioralData;
 	protected double[][] similarMethodInvocationFromSiblingSubclassMatrix;
@@ -57,6 +58,10 @@ public class MatrixContainer {
 	
 	public void setAbstractMethodInvocationMatrix(double[][] m) {
 		this.abstractMethodInvocationMatrix = m;
+	}
+
+    public void setAbstractMethodInvocationBehavioralData(BehavioralData abstractMethodInvocationBehavioralData) {
+		this.abstractMethodInvocationBehavioralData = abstractMethodInvocationBehavioralData;
 	}
 
     public void setIterativeNonSimilarAbstractMethodInvocationMatrix(double[][] m) {
@@ -141,6 +146,10 @@ public class MatrixContainer {
 	
 	public double[][] getAbstractMethodInvocationMatrix() {
 		return this.abstractMethodInvocationMatrix;
+	}
+
+    public BehavioralData getAbstractMethodInvocationBehavioralData() {
+		return abstractMethodInvocationBehavioralData;
 	}
 
     public double[][] getIterativeNonSimilarAbstractMethodInvocationMatrix() {
