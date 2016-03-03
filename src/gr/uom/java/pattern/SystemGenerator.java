@@ -311,7 +311,7 @@ public class SystemGenerator {
                             	int posX = systemObject.getPositionInClassList(fio.getOwnerClass());
                             	if(posX != -1 && fio.getClassType().equals(mio.getOriginClassName())) {
                             		FieldObject tempX = co.getField(fio);
-                            		if(tempX != null && !fields.contains(tempX)) {
+                            		if(tempX != null && !fields.contains(tempX) && !tempX.getName().startsWith("val$") && !tempX.getName().startsWith("this$")) {
                             			fields.add(tempX);
                             		}
                             	}
