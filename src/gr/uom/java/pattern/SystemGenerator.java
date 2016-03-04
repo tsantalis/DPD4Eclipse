@@ -304,18 +304,7 @@ public class SystemGenerator {
                     if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName())) {
                         MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
                         if(temp != null && temp.isAbstract()) {
-                        	List<FieldObject> fields = new ArrayList<FieldObject>();
-                        	ListIterator<FieldInstructionObject> fii = mo.getFieldInstructionIterator();
-                            while(fii.hasNext()) {
-                            	FieldInstructionObject fio = fii.next();
-                            	int posX = systemObject.getPositionInClassList(fio.getOwnerClass());
-                            	if(posX != -1 && fio.getClassType().equals(mio.getOriginClassName())) {
-                            		FieldObject tempX = co.getField(fio);
-                            		if(tempX != null && !fields.contains(tempX) && !tempX.getName().startsWith("val$") && !tempX.getName().startsWith("this$")) {
-                            			fields.add(tempX);
-                            		}
-                            	}
-                            }
+                        	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
                             if(!fields.isEmpty()) {
                             	m[counter][pos] = 1;
                             	behavioralData.addMethod(counter, pos, mo);
@@ -333,6 +322,22 @@ public class SystemGenerator {
         matrixContainer.setAbstractMethodInvocationMatrix(m);
         matrixContainer.setAbstractMethodInvocationBehavioralData(behavioralData);
     }
+
+	private List<FieldObject> getFieldsOfClassAccessedInMethodCallingMethodInvocation(ClassObject co, MethodObject mo, MethodInvocationObject mio) {
+		List<FieldObject> fields = new ArrayList<FieldObject>();
+		ListIterator<FieldInstructionObject> fii = mo.getFieldInstructionIterator();
+		while(fii.hasNext()) {
+			FieldInstructionObject fio = fii.next();
+			int posX = systemObject.getPositionInClassList(fio.getOwnerClass());
+			if(posX != -1 && fio.getClassType().equals(mio.getOriginClassName())) {
+				FieldObject tempX = co.getField(fio);
+				if(tempX != null && !fields.contains(tempX) && !tempX.getName().startsWith("val$") && !tempX.getName().startsWith("this$")) {
+					fields.add(tempX);
+				}
+			}
+		}
+		return fields;
+	}
 
     private void doubleDispatchMatrix() {
         ListIterator<ClassObject> it = systemObject.getClassListIterator();
@@ -583,8 +588,14 @@ public class SystemGenerator {
                                         co.hasFieldType(mio.getOriginClassName()) &&
                                         !superclass.equals(mio.getOriginClassName()) &&
                                         !belongInSameHierarchy(co.getName(),mio.getOriginClassName())) {
+                                    	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
+                                    	if(!fields.isEmpty()) {	
                                             m[counter][pos2] = 1;
                                             behavioralData.addMethod(counter, pos2, mo);
+                                            for(FieldObject field : fields) {
+                                        		behavioralData.addField(counter, pos2, field);
+                                        	}
+                                    	}
                                     }
                                 }
                             }

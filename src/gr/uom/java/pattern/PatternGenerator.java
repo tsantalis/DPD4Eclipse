@@ -286,6 +286,7 @@ public class PatternGenerator {
         divisorArray[1] = 2;
         patternDescriptor.setDivisorArray(divisorArray);
         patternDescriptor.setMethodRoleName("Request()/Execute()");
+        patternDescriptor.setFieldRoleName("adaptee/receiver");
 
         return patternDescriptor;
     }
