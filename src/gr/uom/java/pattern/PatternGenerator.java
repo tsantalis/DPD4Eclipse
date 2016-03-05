@@ -99,7 +99,7 @@ public class PatternGenerator {
 
         double[][] abMatrix = new double[2][2];
         abMatrix[0][0] = 1;
-        abMatrix[1][1] = 1;
+        //abMatrix[1][1] = 1;
         patternDescriptor.setAbstractMatrix(abMatrix);
 
         double[][] simMatrix = new double[2][2];
@@ -110,7 +110,7 @@ public class PatternGenerator {
 
         int[] divisorArray = new int[2];
         divisorArray[0] = 3;
-        divisorArray[1] = 3;
+        divisorArray[1] = 2;
         patternDescriptor.setDivisorArray(divisorArray);
         patternDescriptor.setMethodRoleName("Operation()");
         patternDescriptor.setFieldRoleName("component");
