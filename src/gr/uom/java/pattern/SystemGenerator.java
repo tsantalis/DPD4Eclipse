@@ -398,8 +398,14 @@ public class SystemGenerator {
                         if(pos != -1) {
                             MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
                             if(temp != null && temp.equals(mo) && temp.isAbstract() && childParentRelationship(co.getName(), mio.getOriginClassName())) {
-                                m[counter][pos] = 1;
-                                behavioralData.addMethod(counter, pos, mo);
+                            	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
+                                if(!fields.isEmpty()) {
+                                	m[counter][pos] = 1;
+                                	behavioralData.addMethod(counter, pos, mo);
+                                	for(FieldObject field : fields) {
+                                		behavioralData.addField(counter, pos, field);
+                                	}
+                                }
                             }
                         }
                     }

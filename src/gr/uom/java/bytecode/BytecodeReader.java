@@ -219,9 +219,18 @@ public class BytecodeReader {
                                 (ainsn.getOpcode() == Opcodes.INVOKESPECIAL) ||
                                 (ainsn.getOpcode() == Opcodes.INVOKEINTERFACE)) {
 
+                        	MethodInvocationType type = null;
+                        	if((ainsn.getOpcode() == Opcodes.INVOKEVIRTUAL))
+                        		type = MethodInvocationType.INVOKE_VIRTUAL;
+                        	else if((ainsn.getOpcode() == Opcodes.INVOKESTATIC))
+                        		type = MethodInvocationType.INVOKE_STATIC;
+                        	else if((ainsn.getOpcode() == Opcodes.INVOKESPECIAL))
+                        		type = MethodInvocationType.INVOKE_SPECIAL;
+                        	else if((ainsn.getOpcode() == Opcodes.INVOKEINTERFACE))
+                        		type = MethodInvocationType.INVOKE_INTERFACE;
                             MethodInsnNode minsn = (MethodInsnNode) ainsn;
                             MethodInvocationObject mio = new MethodInvocationObject(
-                                    minsn.owner.replaceAll("/", "."), minsn.name, Type.getReturnType(minsn.desc).getClassName());
+                                    minsn.owner.replaceAll("/", "."), minsn.name, Type.getReturnType(minsn.desc).getClassName(), type);
                             Type[] argTypes = Type.getArgumentTypes(minsn.desc);
                             for (Type argType : argTypes)
                                 mio.addParameter(argType.getClassName());

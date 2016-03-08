@@ -10,11 +10,13 @@ public class MethodInvocationObject {
     private String methodName;
     private String returnType;
     private List<String> parameterList;
+    private MethodInvocationType type;
 
-    public MethodInvocationObject(String originClassName, String methodName, String returnType) {
+    public MethodInvocationObject(String originClassName, String methodName, String returnType, MethodInvocationType type) {
         this.originClassName = originClassName;
         this.methodName = methodName;
         this.returnType = returnType;
+        this.type = type;
         this.parameterList = new ArrayList<String>();
     }
 
