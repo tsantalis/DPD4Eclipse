@@ -259,6 +259,7 @@ public class PatternGenerator {
         divisorArray[1] = 2;
         patternDescriptor.setDivisorArray(divisorArray);
         patternDescriptor.setMethodRoleName("Operation()");
+        patternDescriptor.setFieldRoleName("prototype");
 
         return patternDescriptor;
     }

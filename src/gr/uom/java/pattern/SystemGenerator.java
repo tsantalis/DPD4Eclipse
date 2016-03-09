@@ -323,7 +323,7 @@ public class SystemGenerator {
         matrixContainer.setAbstractMethodInvocationBehavioralData(behavioralData);
     }
 
-	private List<FieldObject> getFieldsOfClassAccessedInMethodCallingMethodInvocation(ClassObject co, MethodObject mo, MethodInvocationObject mio) {
+	private List<FieldObject> getFieldsOfClassAccessedInMethodCallingMethodInvocation(ClassObject co, AbstractMethodDeclaration mo, MethodInvocationObject mio) {
 		List<FieldObject> fields = new ArrayList<FieldObject>();
 		ListIterator<FieldInstructionObject> fii = mo.getFieldInstructionIterator();
 		while(fii.hasNext()) {
@@ -936,8 +936,14 @@ public class SystemGenerator {
                     if(mio.getMethodName().equals("clone")) {
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
                         if(pos != -1 && counter != pos) {
-                            m[counter][pos] = 1;
-                            behavioralData.addMethod(counter, pos, mo);
+                        	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
+                            if(!fields.isEmpty()) {
+                            	m[counter][pos] = 1;
+                            	behavioralData.addMethod(counter, pos, mo);
+                            	for(FieldObject field : fields) {
+                            		behavioralData.addField(counter, pos, field);
+                            	}
+                            }
                         }
                     }
                 }
@@ -953,8 +959,14 @@ public class SystemGenerator {
                     if(mio.getMethodName().equals("clone")) {
                         int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
                         if(pos != -1 && counter != pos) {
-                            m[counter][pos] = 1;
-                        	behavioralData.addMethod(counter, pos, coo);
+                        	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, coo, mio);
+                            if(!fields.isEmpty()) {
+                            	m[counter][pos] = 1;
+                            	behavioralData.addMethod(counter, pos, coo);
+                            	for(FieldObject field : fields) {
+                            		behavioralData.addField(counter, pos, field);
+                            	}
+                            }
                         }
                     }
                 }
