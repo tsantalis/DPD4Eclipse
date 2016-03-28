@@ -333,6 +333,7 @@ public class DesignPatternDetection extends ViewPart {
 		detectDesignPatterns.setToolTipText("Detect Design Patterns");
 		detectDesignPatterns.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
+		detectDesignPatterns.setEnabled(false);
 
 		doubleClickAction = new Action() {
 			public void run() {
