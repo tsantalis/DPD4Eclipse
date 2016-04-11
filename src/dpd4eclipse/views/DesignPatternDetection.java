@@ -300,8 +300,9 @@ public class DesignPatternDetection extends ViewPart {
 				try {
 					String relativePathToOutputLocation = activeProject.getOutputLocation().toOSString();
 					String relativePathToProject = activeProject.getPath().toOSString();
+					String outputDirectory = relativePathToOutputLocation.replace(relativePathToProject, "");
 					String pathToProject = activeProject.getResource().getLocation().toOSString();
-					String pathToOutputLocation = pathToProject.replace(relativePathToProject, relativePathToOutputLocation);
+					String pathToOutputLocation = pathToProject + outputDirectory;
 					final File filePathToProject = new File(pathToOutputLocation);
 					IWorkbench wb = PlatformUI.getWorkbench();
 					IProgressService ps = wb.getProgressService();
