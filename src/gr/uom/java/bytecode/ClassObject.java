@@ -64,7 +64,10 @@ public class ClassObject {
     			if(superClass != null) {
     				SignatureObject updatedSignature = new SignatureObject(superClassName,
     						signature.getMethodName(), signature.getReturnType(), signature.getParameterList());
-    				return superClass.findMethodIncludingSuperTypes(updatedSignature);
+    				MethodObject superMethod = superClass.findMethodIncludingSuperTypes(updatedSignature);
+    				if(superMethod != null) {
+    					return superMethod;
+    				}
     			}
     		}
     	}
