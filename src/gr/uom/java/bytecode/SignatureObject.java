@@ -47,6 +47,44 @@ public class SignatureObject {
         return false;
     }
 
+    public boolean equalsGeneric(Object o) {
+        if(this == o) {
+            return true;
+        }
+
+        if (o instanceof SignatureObject) {
+            SignatureObject signatureObject = (SignatureObject)o;
+
+            return className.equals(signatureObject.className) &&
+                methodName.equals(signatureObject.methodName) &&
+                equalClassType(returnType, signatureObject.returnType) &&
+                equalParameterTypes(parameterList, signatureObject.parameterList);
+        }
+        return false;
+    }
+
+    private boolean equalParameterTypes(List<String> parameterTypes1, List<String> parameterTypes2) {
+    	if(parameterTypes1.size() == parameterTypes2.size()) {
+			int i = 0;
+			for(String type1 : parameterTypes1) {
+				String type2 = parameterTypes2.get(i);
+				if(!equalClassType(type1, type2))
+					return false;
+				i++;
+			}
+		}
+		else return false;
+    	return true;
+    }
+
+    private boolean equalClassType(String thisClassType, String otherClassType) {
+    	//this case covers type parameter names, such as E, K, N, T, V, S, U
+    	if(thisClassType.length() == 1 || otherClassType.length() == 1)
+    		return true;
+    	else
+    		return thisClassType.equals(otherClassType);
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         if(!className.equals(methodName))

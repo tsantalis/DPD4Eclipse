@@ -28,6 +28,8 @@ import java.util.SortedSet;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
@@ -49,6 +51,8 @@ import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.jface.action.*;
@@ -64,6 +68,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
+import dpd4eclipse.visualization.DesignPatternVisualizationData;
 
 /**
  * This sample class demonstrates how to plug-in a new
@@ -273,6 +278,22 @@ public class DesignPatternDetection extends ViewPart {
 		column0.setText("Pattern");
 		column0.setResizable(true);
 		column0.pack();
+		
+		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+			public void selectionChanged(SelectionChangedEvent event) {
+				viewer.getTree().setMenu(null);
+				IStructuredSelection selection = (IStructuredSelection)viewer.getSelection();
+				if(selection instanceof IStructuredSelection) {
+					IStructuredSelection structuredSelection = (IStructuredSelection)selection;
+					Object[] selectedItems = structuredSelection.toArray();
+					if(selection.getFirstElement() instanceof PatternInstance && selectedItems.length == 1) {
+						PatternInstance patternInstance = (PatternInstance)selection.getFirstElement();
+						viewer.getTree().setMenu(getRightClickMenu(viewer, patternInstance));
+					}
+				}
+			}
+		});
+		
 		viewer.expandAll();
 
 		// Create the help context id for the viewer's control
@@ -282,6 +303,30 @@ public class DesignPatternDetection extends ViewPart {
 		contributeToActionBars();
 
 		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(selectionListener);
+	}
+
+	private Menu getRightClickMenu(TreeViewer treeViewer, final PatternInstance instance) {
+		Menu popupMenu = new Menu(treeViewer.getControl());
+		MenuItem textualDiffMenuItem = new MenuItem(popupMenu, SWT.NONE);
+		textualDiffMenuItem.setText("Visualize UML Class diagram");
+		textualDiffMenuItem.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent arg) {
+				DesignPatternVisualizationData data = new DesignPatternVisualizationData(instance);
+				VisualizationDataSingleton.setData(data);
+				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+				IViewPart viewPart = page.findView(DesignPatternVisualization.ID);
+				if(viewPart != null)
+					page.hideView(viewPart);
+				try {
+					page.showView(DesignPatternVisualization.ID);
+				} catch (PartInitException e) {
+					e.printStackTrace();
+				}
+			}
+			public void widgetDefaultSelected(SelectionEvent arg) {}
+		});
+		popupMenu.setVisible(false);
+		return popupMenu;
 	}
 
 	private void contributeToActionBars() {
@@ -462,8 +507,8 @@ public class DesignPatternDetection extends ViewPart {
 		if(!markers.isEmpty()) {
 			throw new CompilationErrorDetectedException(markers);
 		}
-		BytecodeReader br = new BytecodeReader(inputDir, monitor);
-		SystemObject so = br.getSystemObject();
+		new BytecodeReader(inputDir, monitor);
+		SystemObject so = BytecodeReader.getSystemObject();
 		SystemGenerator sg = new SystemGenerator(so);
 		SortedSet<ClusterSet.Entry> clusterSet = sg.getClusterSet().getInvokingClusterSet();
 		List<Enumeratable> hierarchyList = sg.getHierarchyList();

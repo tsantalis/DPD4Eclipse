@@ -13,6 +13,7 @@ public class ConstructorObject implements AbstractMethodDeclaration {
     protected List<LoopObject> loopList;
     protected List<FieldInstructionObject> fieldInstructionList;
     protected Access access;
+    private volatile int hashCode = 0;
 
     public ConstructorObject() {
 		this.parameterList = new ArrayList<TypeObject>();
@@ -115,6 +116,16 @@ public class ConstructorObject implements AbstractMethodDeclaration {
 				this.parameterList.equals(constructorObject.parameterList);
 		}
 		return false;
+    }
+
+    public int hashCode() {
+    	if(hashCode == 0) {
+    		int result = 17;
+    		result = 37*result + name.hashCode();
+    		result = 37*result + parameterList.hashCode();
+    		hashCode = result;
+    	}
+    	return hashCode;
     }
 
     public String toString() {

@@ -11,6 +11,7 @@ public class MethodInvocationObject {
     private String returnType;
     private List<String> parameterList;
     private MethodInvocationType type;
+    private volatile int hashCode = 0;
 
     public MethodInvocationObject(String originClassName, String methodName, String returnType, MethodInvocationType type) {
         this.originClassName = originClassName;
@@ -82,6 +83,19 @@ public class MethodInvocationObject {
                 parameterList.equals(methodInvocationObject.parameterList);
         }
         return false;
+    }
+
+    public int hashCode() {
+    	if(hashCode == 0) {
+    		int result = 17;
+    		result = 37*result + originClassName.hashCode();
+    		result = 37*result + methodName.hashCode();
+    		result = 37*result + returnType.hashCode();
+    		for(String parameter : parameterList)
+    			result = 37*result + parameter.hashCode();
+    		hashCode = result;
+    	}
+    	return hashCode;
     }
 
     public String toString() {

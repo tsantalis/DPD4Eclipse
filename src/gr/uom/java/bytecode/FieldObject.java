@@ -7,6 +7,7 @@ public class FieldObject {
     private boolean _static;
     private Access access;
     private String className;
+    private volatile int hashCode = 0;
 
     public FieldObject(TypeObject type, String name) {
         this.type = type;
@@ -57,6 +58,16 @@ public class FieldObject {
             return this.name.equals(fieldObject.name) && this.type.equals(fieldObject.type);
         }
         return false;
+    }
+
+    public int hashCode() {
+    	if(hashCode == 0) {
+    		int result = 17;
+    		result = 37*result + name.hashCode();
+    		result = 37*result + type.hashCode();
+    		hashCode = result;
+    	}
+    	return hashCode;
     }
 
     public boolean equals(FieldInstructionObject fio) {

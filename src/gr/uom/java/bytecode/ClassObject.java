@@ -38,7 +38,37 @@ public class ClassObject {
             if(mo.getSignature().equals(signature))
                 return mo;
         }
+        return getMethodGenericMatch(signature);
+    }
+
+    private MethodObject getMethodGenericMatch(SignatureObject signature) {
+    	ListIterator<MethodObject> mi = getMethodIterator();
+        while(mi.hasNext()) {
+            MethodObject mo = mi.next();
+            if(mo.getSignature().equalsGeneric(signature))
+                return mo;
+        }
         return null;
+    }
+
+    public MethodObject findMethodIncludingSuperTypes(SignatureObject signature) {
+    	MethodObject method = getMethod(signature);
+    	if(method != null) {
+    		return method;
+    	}
+    	else {
+    		ListIterator<String> superClassIterator = getSuperclassIterator();
+    		while(superClassIterator.hasNext()) {
+    			String superClassName = superClassIterator.next();
+    			ClassObject superClass = BytecodeReader.getSystemObject().getClassObject(superClassName);
+    			if(superClass != null) {
+    				SignatureObject updatedSignature = new SignatureObject(superClassName,
+    						signature.getMethodName(), signature.getReturnType(), signature.getParameterList());
+    				return superClass.findMethodIncludingSuperTypes(updatedSignature);
+    			}
+    		}
+    	}
+    	return null;
     }
 
     public FieldObject getField(FieldInstructionObject fio) {

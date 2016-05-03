@@ -12,10 +12,10 @@ import org.objectweb.asm.tree.*;
 
 public class BytecodeReader {
 
-	private SystemObject so;
+	private static SystemObject so;
 
 	public BytecodeReader(File dir, IProgressMonitor monitor) {
-		this.so = new SystemObject();
+		so = new SystemObject();
 		if(monitor != null)
 			monitor.beginTask("Parsing selected Java Project", getNumberOfClassFiles(dir));
 		recurse(dir, monitor);
@@ -286,7 +286,7 @@ public class BytecodeReader {
 		return co;
 	}
 
-    public SystemObject getSystemObject() {
+    public static SystemObject getSystemObject() {
 		return so;
 	}
 }

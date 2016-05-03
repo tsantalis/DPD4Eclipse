@@ -15,6 +15,13 @@
             class="dpd4eclipse.views.DesignPatternDetection"
             id="dpd4eclipse.views.DesignPatternDetection">
       </view>
+      <view
+            category="DPD4Eclipse"
+            class="dpd4eclipse.views.DesignPatternVisualization"
+            icon="icons/sample.gif"
+            id="dpd4eclipse.views.DesignPatternVisualization"
+            name="Design Pattern Visualization">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
