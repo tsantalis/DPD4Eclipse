@@ -267,30 +267,32 @@ public class DesignPatternDiagram {
 					FieldInstructionObject fieldInstruction = map.getKey();
 					FieldObject accessedField = classObject.findFieldIncludingSuperTypes(fieldInstruction);
 					Integer occurences = map.getValue();
-					EntityFigure fieldFigure = new EntityFigure(accessedField.getSignature(), createFieldDecoration(accessedField), new ArrayList<JConnection>());
-					List fieldFigures;
-					if (oneSection){
-						fieldFigures = classFigure.getFieldsCompartment().getChildren();
-						bendHeight = classWidth + bendGap;
-					} else
-					{
-						fieldFigures = classFigure.getFieldSectionCompartment().getSectionTwo().getChildren();
-						bendHeight = sectionWidth + bendGap;
-					}
+					if(accessedField != null) {
+						EntityFigure fieldFigure = new EntityFigure(accessedField.getSignature(), createFieldDecoration(accessedField), new ArrayList<JConnection>());
+						List fieldFigures;
+						if (oneSection){
+							fieldFigures = classFigure.getFieldsCompartment().getChildren();
+							bendHeight = classWidth + bendGap;
+						} else
+						{
+							fieldFigures = classFigure.getFieldSectionCompartment().getSectionTwo().getChildren();
+							bendHeight = sectionWidth + bendGap;
+						}
 
-					for(Object child : fieldFigures){
-						EntityFigure entity = (EntityFigure) child;
-						if (entity.getName().equals(fieldFigure.getName())){
-							JConnection connection;
-							if(inRightSection || oneSection){
-								connection = connectionSource.addToSameClassReadConnectionRR(ConnectionType.READ_FIELD_TARGET,entity, occurences,  bendHeight);
-								connectionList.add(connection);
-								connections.add(connection);
-							}
-							else{
-								connection = connectionSource.addToSameClassReadConnectionLL(ConnectionType.READ_FIELD_TARGET,entity, occurences,bendHeight);
-								connectionList.add(connection);
-								connections.add(connection);
+						for(Object child : fieldFigures){
+							EntityFigure entity = (EntityFigure) child;
+							if (entity.getName().equals(fieldFigure.getName())){
+								JConnection connection;
+								if(inRightSection || oneSection){
+									connection = connectionSource.addToSameClassReadConnectionRR(ConnectionType.READ_FIELD_TARGET,entity, occurences,  bendHeight);
+									connectionList.add(connection);
+									connections.add(connection);
+								}
+								else{
+									connection = connectionSource.addToSameClassReadConnectionLL(ConnectionType.READ_FIELD_TARGET,entity, occurences,bendHeight);
+									connectionList.add(connection);
+									connections.add(connection);
+								}
 							}
 						}
 					}
