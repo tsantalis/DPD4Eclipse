@@ -61,14 +61,14 @@ public class DesignPatternDiagram {
 			if(oneSection) {
 				classFigure.addFieldCompartment();
 				for(FieldObject field : fields){
-					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, true);
+					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, connectionList);
 					classFigure.getFieldsCompartment().addFigure(fieldFigure);
 				}
 			}
 			else {
 				classFigure.addFieldSectionCompartment();
 				for(FieldObject field : fields){
-					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, true);
+					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, connectionList);
 					classFigure.getFieldSectionCompartment().getSectionTwo().addFigure(fieldFigure);
 				}
 			}
@@ -92,7 +92,7 @@ public class DesignPatternDiagram {
 				boolean contains= false;
 				boolean sourceinRightSection = false;
 
-				EntityFigure methodFigure = new EntityFigure(method.getSignature().toString(), createMethodDecoration(method), true);
+				EntityFigure methodFigure = new EntityFigure(method.getSignature().toString(), createMethodDecoration(method), connectionList);
 
 				//check if method is in Left Section already
 				for(Object child : sectionOne.getChildren()){
@@ -132,7 +132,8 @@ public class DesignPatternDiagram {
 					Integer occurences = map.getValue();
 
 					if(invokedMethod != null) {
-						EntityFigure targetFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod), true);
+						EntityFigure targetFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod),
+								patternMethods.contains(invokedMethod) ? connectionList : new ArrayList<JConnection>());
 
 						//checks if Target Connection Method is in Left Section
 						for(Object child : sectionOne.getChildren()){
@@ -221,7 +222,7 @@ public class DesignPatternDiagram {
 			//Adds Methods that were not already added
 			for(MethodObject method : methods){
 				contains = false;
-				EntityFigure methodFigure = new EntityFigure(method.getSignature().toString(), createMethodDecoration(method), true);
+				EntityFigure methodFigure = new EntityFigure(method.getSignature().toString(), createMethodDecoration(method), connectionList);
 				//checks if Method is in Left Section
 				for(Object child : sectionOne.getChildren()){
 					EntityFigure entity = (EntityFigure) child;

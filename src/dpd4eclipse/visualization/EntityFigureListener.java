@@ -2,7 +2,6 @@ package dpd4eclipse.visualization;
 
 import java.util.List;
 
-
 import org.eclipse.draw2d.ConnectionEndpointLocator;
 import org.eclipse.draw2d.ConnectionLocator;
 import org.eclipse.draw2d.Label;
@@ -15,9 +14,11 @@ import org.eclipse.draw2d.PositionConstants;
 public class EntityFigureListener implements MouseMotionListener{
 
 	private final EntityFigure figure;
+	private final List<JConnection> connectionList;
 
-	public EntityFigureListener(EntityFigure figure) {
+	public EntityFigureListener(EntityFigure figure, List<JConnection> connectionList) {
 		this.figure = figure;
+		this.connectionList = connectionList;
 		figure.addMouseMotionListener(this);
 	}
 
@@ -50,6 +51,13 @@ public class EntityFigureListener implements MouseMotionListener{
 			decoration.setBackgroundColor(connection.getForegroundColor());
 			connection.setTargetDecoration(decoration);
 		}
+		for(JConnection connection : connectionList) {
+			if(!connections.contains(connection)) {
+				connection.setAlpha(0);
+				connection.getLabel().setVisible(false);
+				connection.setTargetDecoration(null);
+			}
+		}
 	}
 
 	public void mouseExited(MouseEvent me) {
@@ -65,6 +73,15 @@ public class EntityFigureListener implements MouseMotionListener{
 				locator.setRelativePosition(PositionConstants.CENTER);
 				connection.add(l, locator);
 			}
+		}
+		for(JConnection connection : connectionList) {
+			connection.setAlpha(255);
+			connection.getLabel().setVisible(true);
+			PolygonDecoration decoration = new PolygonDecoration();
+			decoration.setTemplate(PolygonDecoration.TRIANGLE_TIP);
+			decoration.setSize(20, 20);
+			decoration.setBackgroundColor(connection.getForegroundColor());
+			connection.setTargetDecoration(decoration);
 		}
 	}
 

@@ -2,6 +2,7 @@ package dpd4eclipse.visualization;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.MarginBorder;
 import org.eclipse.swt.graphics.Image;
@@ -24,10 +25,9 @@ public class EntityFigure extends Label{
 		setToolTip(new Label(name));
 	}
 
-	public EntityFigure(String name, Image image, boolean highlight){
+	public EntityFigure(String name, Image image, List<JConnection> allConnections){
 		super(name, image);
-		if (highlight)
-			new EntityFigureListener(this);
+		new EntityFigureListener(this, allConnections);
 		this.name= name;
 		setLabelAlignment(LEFT);
 		setOpaque(true);
