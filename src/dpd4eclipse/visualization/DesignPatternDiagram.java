@@ -2,6 +2,7 @@ package dpd4eclipse.visualization;
 
 import gr.uom.java.bytecode.Access;
 import gr.uom.java.bytecode.ClassObject;
+import gr.uom.java.bytecode.FieldInstructionObject;
 import gr.uom.java.bytecode.FieldObject;
 import gr.uom.java.bytecode.MethodInvocationObject;
 import gr.uom.java.bytecode.MethodObject;
@@ -49,6 +50,7 @@ public class DesignPatternDiagram {
 			
 			int classWidth = 450;
 			boolean oneSection = false;
+			//condition patternMethods.containsAll(methods) could be also used
 			if(totalMethods <= 1) {
 				oneSection = true;
 				classWidth = 200;
@@ -61,14 +63,14 @@ public class DesignPatternDiagram {
 			if(oneSection) {
 				classFigure.addFieldCompartment();
 				for(FieldObject field : fields){
-					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, connectionList);
+					EntityFigure fieldFigure = new EntityFigure(field.getSignature(), createFieldDecoration(field), new ArrayList<JConnection>());
 					classFigure.getFieldsCompartment().addFigure(fieldFigure);
 				}
 			}
 			else {
 				classFigure.addFieldSectionCompartment();
 				for(FieldObject field : fields){
-					EntityFigure fieldFigure = new EntityFigure(field.getName(), DecorationConstants.FIELD, connectionList);
+					EntityFigure fieldFigure = new EntityFigure(field.getSignature(), createFieldDecoration(field), new ArrayList<JConnection>());
 					classFigure.getFieldSectionCompartment().getSectionTwo().addFigure(fieldFigure);
 				}
 			}
@@ -81,9 +83,10 @@ public class DesignPatternDiagram {
 			MethodClassSection sectionOne = classFigure.getMethodSectionCompartment().getSectionOne();
 			MethodClassSection sectionThree = classFigure.getMethodSectionCompartment().getSectionThree();
 			
+			int bendHeight;
+						
 			//Adds Connections from Methods to other Methods in Extracted Class
 			Map<MethodObject, Map<MethodInvocationObject, Integer>> internalMethodInvocationMap = data.getInternalMethodInvocationMapForClass(classObject);
-			int bendHeight;
 			for(Entry<MethodObject, Map<MethodInvocationObject, Integer>> entry : internalMethodInvocationMap.entrySet()){
 				int bendGap = -20;
 				MethodObject method = entry.getKey();
@@ -218,6 +221,82 @@ public class DesignPatternDiagram {
 				}
 			}
 
+			//Adds Read Connections from Methods to Fields in Extracted Class
+			Map<MethodObject, Map<FieldInstructionObject, Integer>> internalFieldReadMap = data.getInternalFieldReadMapForClass(classObject);
+			for(Entry<MethodObject, Map<FieldInstructionObject, Integer>> entry : internalFieldReadMap.entrySet()){
+				int bendGap = 10;
+
+				MethodObject method = entry.getKey();
+				Map<FieldInstructionObject, Integer> connectionMap = entry.getValue();
+				EntityFigure connectionSource = null;
+				boolean contains= false;
+				boolean inRightSection = false;
+
+				EntityFigure methodFigure = new EntityFigure(method.getSignature().toString(), createMethodDecoration(method),
+						patternMethods.contains(method) ? connectionList : new ArrayList<JConnection>());
+
+				for(Object child : sectionOne.getChildren()){
+					EntityFigure entity = (EntityFigure) child;
+					if (entity.getName().equals(methodFigure.getName())){
+						connectionSource = entity;
+						contains = true;
+					}
+				}
+				if(!contains){
+					for(Object child : sectionThree.getChildren()){
+						EntityFigure entity = (EntityFigure) child;
+						if (entity.getName().equals(methodFigure.getName())){
+							connectionSource = entity;
+							inRightSection = true;
+							contains = true;
+						}
+					}
+				}
+
+				if(!contains){
+					if(sectionOne.getNumOfMethods()<= sectionThree.getNumOfMethods())
+						sectionOne.addFigure(methodFigure);
+					else{
+						sectionThree.addFigure(methodFigure);
+						inRightSection = true;
+					}
+					connectionSource = methodFigure;
+				}
+
+				for(Entry<FieldInstructionObject, Integer> map  : connectionMap.entrySet()){
+					FieldInstructionObject fieldInstruction = map.getKey();
+					FieldObject accessedField = classObject.findFieldIncludingSuperTypes(fieldInstruction);
+					Integer occurences = map.getValue();
+					EntityFigure fieldFigure = new EntityFigure(accessedField.getSignature(), createFieldDecoration(accessedField), new ArrayList<JConnection>());
+					List fieldFigures;
+					if (oneSection){
+						fieldFigures = classFigure.getFieldsCompartment().getChildren();
+						bendHeight = classWidth + bendGap;
+					} else
+					{
+						fieldFigures = classFigure.getFieldSectionCompartment().getSectionTwo().getChildren();
+						bendHeight = sectionWidth + bendGap;
+					}
+
+					for(Object child : fieldFigures){
+						EntityFigure entity = (EntityFigure) child;
+						if (entity.getName().equals(fieldFigure.getName())){
+							JConnection connection;
+							if(inRightSection || oneSection){
+								connection = connectionSource.addToSameClassReadConnectionRR(ConnectionType.READ_FIELD_TARGET,entity, occurences,  bendHeight);
+								connectionList.add(connection);
+								connections.add(connection);
+							}
+							else{
+								connection = connectionSource.addToSameClassReadConnectionLL(ConnectionType.READ_FIELD_TARGET,entity, occurences,bendHeight);
+								connectionList.add(connection);
+								connections.add(connection);
+							}
+						}
+					}
+				}
+			}
+			
 			boolean contains;
 			//Adds Methods that were not already added
 			for(MethodObject method : methods){
@@ -256,6 +335,34 @@ public class DesignPatternDiagram {
 			primary.add(classFigure, new Rectangle(startPointX, startPointY, classWidth,-1));
 		}
 		root.add(connections, "Connections");
+	}
+
+	private Image createFieldDecoration(FieldObject field) {
+		if(field.isStatic() && field.getAccess().equals(Access.PUBLIC)) {
+			return DecorationConstants.PUBLIC_STATIC_FIELD;
+		}
+		if(field.isStatic() && field.getAccess().equals(Access.PROTECTED)) {
+			return DecorationConstants.PROTECTED_STATIC_FIELD;
+		}
+		if(field.isStatic() && field.getAccess().equals(Access.NONE)) {
+			return DecorationConstants.DEFAULT_STATIC_FIELD;
+		}
+		if(field.isStatic() && field.getAccess().equals(Access.PRIVATE)) {
+			return DecorationConstants.PRIVATE_STATIC_FIELD;
+		}
+		if(field.getAccess().equals(Access.PUBLIC)) {
+			return DecorationConstants.PUBLIC_FIELD;
+		}
+		if(field.getAccess().equals(Access.PROTECTED)) {
+			return DecorationConstants.PROTECTED_FIELD;
+		}
+		if(field.getAccess().equals(Access.PRIVATE)) {
+			return DecorationConstants.PRIVATE_FIELD;
+		}
+		if(field.getAccess().equals(Access.NONE)) {
+			return DecorationConstants.DEFAULT_FIELD;
+		}
+		return DecorationConstants.FIELD;
 	}
 
 	private Image createMethodDecoration(MethodObject method) {

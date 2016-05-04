@@ -15,7 +15,7 @@ public class EntityFigure extends Label{
 	private RightAnchor rightAnchor= null;
 	
 	public EntityFigure(String name){
-		super(name);
+		super(simplifyName(name));
 		this.name= name;
 		//new EntityFigureListener(this);
 		setLabelAlignment(LEFT);
@@ -26,7 +26,7 @@ public class EntityFigure extends Label{
 	}
 
 	public EntityFigure(String name, Image image, List<JConnection> allConnections){
-		super(name, image);
+		super(simplifyName(name), image);
 		new EntityFigureListener(this, allConnections);
 		this.name= name;
 		setLabelAlignment(LEFT);
@@ -34,6 +34,21 @@ public class EntityFigure extends Label{
 		setBorder(new MarginBorder(3,3,3,3));
 		setSize(200,200);
 		setToolTip(new Label(name));
+	}
+
+	private static String simplifyName(String name) {
+		if(name.contains("::")) {
+			//remove class prefix
+			String newName = name.substring(name.indexOf("::")+2, name.length());
+			if(newName.contains(":")) {
+				//remove type suffix
+				return newName.substring(0, newName.indexOf(":"));
+			}
+			else {
+				return newName;
+			}
+		}
+		return name;
 	}
 
 	public LeftAnchor getLeftAnchor() {

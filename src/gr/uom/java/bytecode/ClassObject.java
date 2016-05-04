@@ -74,6 +74,28 @@ public class ClassObject {
     	return null;
     }
 
+    public FieldObject findFieldIncludingSuperTypes(FieldInstructionObject fio) {
+    	FieldObject field = getField(fio);
+    	if(field != null) {
+    		return field;
+    	}
+    	else {
+    		ListIterator<String> superClassIterator = getSuperclassIterator();
+    		while(superClassIterator.hasNext()) {
+    			String superClassName = superClassIterator.next();
+    			ClassObject superClass = BytecodeReader.getSystemObject().getClassObject(superClassName);
+    			if(superClass != null) {
+    				FieldInstructionObject updatedSignature = new FieldInstructionObject(superClassName, fio.getClassType(), fio.getName());
+    				FieldObject superField = superClass.findFieldIncludingSuperTypes(updatedSignature);
+    				if(superField != null) {
+    					return superField;
+    				}
+    			}
+    		}
+    	}
+    	return null;
+    }
+
     public FieldObject getField(FieldInstructionObject fio) {
     	ListIterator<FieldObject> fi = getFieldIterator();
     	while(fi.hasNext()) {

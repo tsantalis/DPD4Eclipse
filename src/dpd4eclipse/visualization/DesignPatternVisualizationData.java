@@ -21,6 +21,7 @@ import gr.uom.java.pattern.PatternInstance.RoleType;
 
 public class DesignPatternVisualizationData {
 	private Map<MethodObject, Map<MethodInvocationObject, Integer>> internalMethodInvocationMap;
+	private Map<MethodObject, Map<FieldInstructionObject, Integer>> internalFieldReadMap;
 	//the key is the role in the design pattern
 	private Map<String, ClassObject> classMap;
 	private Map<String, Set<MethodObject>> methodMap;
@@ -28,6 +29,7 @@ public class DesignPatternVisualizationData {
 	
 	public DesignPatternVisualizationData(PatternInstance patternInstance) {
 		this.internalMethodInvocationMap = new LinkedHashMap<MethodObject, Map<MethodInvocationObject, Integer>>();
+		this.internalFieldReadMap = new LinkedHashMap<MethodObject, Map<FieldInstructionObject, Integer>>();
 		this.classMap = new LinkedHashMap<String, ClassObject>();
 		this.methodMap = new LinkedHashMap<String, Set<MethodObject>>();
 		this.fieldMap = new LinkedHashMap<String, Set<FieldObject>>();
@@ -77,6 +79,13 @@ public class DesignPatternVisualizationData {
 								insertToMap(methodObject, methodInvocation, internalMethodInvocationMap);
 							}
 						}
+						ListIterator<FieldInstructionObject> fieldInstructionIterator = methodObject.getFieldInstructionIterator();
+						while(fieldInstructionIterator.hasNext()) {
+							FieldInstructionObject fieldInstruction = fieldInstructionIterator.next();
+							if(fieldInstruction.getOwnerClass().equals(methodObject.getClassName())) {
+								insertToMap(methodObject, fieldInstruction, internalFieldReadMap, 1);
+							}
+						}
 					}
 				}
 			}
@@ -109,12 +118,25 @@ public class DesignPatternVisualizationData {
 		return classMap;
 	}
 
+	public Set<FieldObject> getPatternFieldsForClass(ClassObject classObject) {
+		Set<FieldObject> fields = new LinkedHashSet<FieldObject>();
+		for(String roleName : this.fieldMap.keySet()) {
+			Set<FieldObject> fieldObjects = this.fieldMap.get(roleName);
+			for(FieldObject fieldObject : fieldObjects) {
+				if(fieldObject.getClassName().equals(classObject.getName())) {
+					fields.add(fieldObject);
+				}
+			}
+		}
+		return fields;
+	}
+
 	public Set<MethodObject> getPatternMethodsForClass(ClassObject classObject) {
 		Set<MethodObject> methods = new LinkedHashSet<MethodObject>();
 		for(String roleName : this.methodMap.keySet()) {
 			Set<MethodObject> methodObjects = this.methodMap.get(roleName);
 			for(MethodObject methodObject : methodObjects) {
-				if(methodObject.getClassName().endsWith(classObject.getName())) {
+				if(methodObject.getClassName().equals(classObject.getName())) {
 					methods.add(methodObject);
 				}
 			}
@@ -127,10 +149,10 @@ public class DesignPatternVisualizationData {
 		methods.addAll(getPatternMethodsForClass(classObject));
 		
 		for(MethodObject methodObject : this.internalMethodInvocationMap.keySet()) {
-			if(methodObject.getClassName().endsWith(classObject.getName())) {
+			if(methodObject.getClassName().equals(classObject.getName())) {
 				Map<MethodInvocationObject, Integer> methodInvocationMap = this.internalMethodInvocationMap.get(methodObject);
 				for(MethodInvocationObject methodInvocation : methodInvocationMap.keySet()) {
-					MethodObject invokedMethodObject = classObject.getMethod(methodInvocation.getSignature());
+					MethodObject invokedMethodObject = classObject.findMethodIncludingSuperTypes(methodInvocation.getSignature());
 					if(invokedMethodObject != null) {
 						methods.add(invokedMethodObject);
 					}
@@ -142,11 +164,16 @@ public class DesignPatternVisualizationData {
 
 	public Set<FieldObject> getFieldsForClass(ClassObject classObject) {
 		Set<FieldObject> fields = new LinkedHashSet<FieldObject>();
-		for(String roleName : this.fieldMap.keySet()) {
-			Set<FieldObject> fieldObjects = this.fieldMap.get(roleName);
-			for(FieldObject fieldObject : fieldObjects) {
-				if(fieldObject.getClassName().endsWith(classObject.getName())) {
-					fields.add(fieldObject);
+		fields.addAll(getPatternFieldsForClass(classObject));
+		
+		for(MethodObject methodObject : this.internalFieldReadMap.keySet()) {
+			if(methodObject.getClassName().equals(classObject.getName())) {
+				Map<FieldInstructionObject, Integer> fieldReadMap = this.internalFieldReadMap.get(methodObject);
+				for(FieldInstructionObject fieldInstruction : fieldReadMap.keySet()) {
+					FieldObject accessedFieldObject = classObject.findFieldIncludingSuperTypes(fieldInstruction);
+					if(accessedFieldObject != null) {
+						fields.add(accessedFieldObject);
+					}
 				}
 			}
 		}
@@ -156,11 +183,21 @@ public class DesignPatternVisualizationData {
 	public Map<MethodObject, Map<MethodInvocationObject, Integer>> getInternalMethodInvocationMapForClass(ClassObject classObject) {
 		Map<MethodObject, Map<MethodInvocationObject, Integer>> internalMethodInvocationMap = new LinkedHashMap<MethodObject, Map<MethodInvocationObject, Integer>>();
 		for(MethodObject methodObject : this.internalMethodInvocationMap.keySet()) {
-			if(methodObject.getClassName().endsWith(classObject.getName())) {
+			if(methodObject.getClassName().equals(classObject.getName())) {
 				internalMethodInvocationMap.put(methodObject, this.internalMethodInvocationMap.get(methodObject));
 			}
 		}
 		return internalMethodInvocationMap;
+	}
+
+	public Map<MethodObject, Map<FieldInstructionObject, Integer>> getInternalFieldReadMapForClass(ClassObject classObject) {
+		Map<MethodObject, Map<FieldInstructionObject, Integer>> internalFieldReadMap = new LinkedHashMap<MethodObject, Map<FieldInstructionObject, Integer>>();
+		for(MethodObject methodObject : this.internalFieldReadMap.keySet()) {
+			if(methodObject.getClassName().equals(classObject.getName())) {
+				internalFieldReadMap.put(methodObject, this.internalFieldReadMap.get(methodObject));
+			}
+		}
+		return internalFieldReadMap;
 	}
 
 	private void insertToMap(MethodObject method, MethodInvocationObject methodInvocation, 
@@ -178,6 +215,24 @@ public class DesignPatternVisualizationData {
 			Map<MethodInvocationObject, Integer> invocationMap = new LinkedHashMap<MethodInvocationObject, Integer>();
 			invocationMap.put(methodInvocation, 1);
 			map.put(method, invocationMap);
+		}
+	}
+
+	private void insertToMap(MethodObject method, FieldInstructionObject fieldInstruction,
+			Map<MethodObject, Map<FieldInstructionObject, Integer>> map, int count) {
+		if(map.containsKey(method)) {
+			Map<FieldInstructionObject, Integer> fieldAccessMap = map.get(method);
+			if(fieldAccessMap.containsKey(fieldInstruction)) {
+				fieldAccessMap.put(fieldInstruction, fieldAccessMap.get(fieldInstruction) + count);
+			}
+			else {
+				fieldAccessMap.put(fieldInstruction, count);
+			}
+		}
+		else {
+			Map<FieldInstructionObject, Integer> fieldAccessMap = new LinkedHashMap<FieldInstructionObject, Integer>();
+			fieldAccessMap.put(fieldInstruction, count);
+			map.put(method, fieldAccessMap);
 		}
 	}
 }

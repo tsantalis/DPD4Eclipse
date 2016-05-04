@@ -5,6 +5,7 @@ public class FieldInstructionObject {
     private String ownerClass;
     private String classType;
     private String name;
+    private volatile int hashCode = 0;
 
     public FieldInstructionObject(String ownerClass, String classType, String name) {
         this.ownerClass = ownerClass;
@@ -43,4 +44,16 @@ public class FieldInstructionObject {
         }
         return false;
     }
+
+    public int hashCode() {
+    	if(hashCode == 0) {
+    		int result = 17;
+    		result = 37*result + ownerClass.hashCode();
+    		result = 37*result + name.hashCode();
+    		result = 37*result + classType.hashCode();
+    		hashCode = result;
+    	}
+    	return hashCode;
+    }
+
 }
