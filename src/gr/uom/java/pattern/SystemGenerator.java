@@ -216,26 +216,25 @@ public class SystemGenerator {
 
         while(it.hasNext()) {
             ClassObject co = it.next();
-
-            ListIterator<MethodObject> methodIt = co.getMethodIterator();
-            while(methodIt.hasNext()) {
-                MethodObject mo = methodIt.next();
-
-                ListIterator<MethodInvocationObject> mii = mo.getMethodInvocationIterator();
-                while(mii.hasNext()) {
-                    MethodInvocationObject mio = mii.next();
-
-                    if(mio.getOriginClassName().equals(co.getName())) {
-                        ClassObject originco = systemObject.getClassObject(mio.getOriginClassName());
-                        if(originco != null) {
-                            MethodObject temp = originco.getMethod(mio.getSignature());
-                            if(temp != null && temp.isAbstract()) {
-                                m[counter][counter] = 1;
-                                behavioralData.addMethod(counter, counter, mo);
-                            }
-                        }
-                    }
-                }
+            if(!co.isInterface()) {
+            	ListIterator<MethodObject> methodIt = co.getMethodIterator();
+            	while(methodIt.hasNext()) {
+            		MethodObject mo = methodIt.next();
+            		ListIterator<MethodInvocationObject> mii = mo.getMethodInvocationIterator();
+            		while(mii.hasNext()) {
+            			MethodInvocationObject mio = mii.next();
+            			if(mio.getOriginClassName().equals(co.getName())) {
+            				ClassObject originco = systemObject.getClassObject(mio.getOriginClassName());
+            				if(originco != null) {
+            					MethodObject temp = originco.getMethod(mio.getSignature());
+            					if(temp != null && temp.isAbstract()) {
+            						m[counter][counter] = 1;
+            						behavioralData.addMethod(counter, counter, mo);
+            					}
+            				}
+            			}
+            		}
+            	}
             }
             counter++;
         }

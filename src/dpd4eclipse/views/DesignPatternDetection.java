@@ -34,10 +34,8 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.part.*;
 import org.eclipse.ui.progress.IProgressService;
 import org.eclipse.ui.texteditor.ITextEditor;
-import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IField;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IJavaModelMarker;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IMethod;
@@ -45,9 +43,7 @@ import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
 import org.eclipse.jdt.core.ISourceRange;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.*;
@@ -64,7 +60,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
@@ -94,9 +89,6 @@ public class DesignPatternDetection extends ViewPart {
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "dpd4eclipse.views.DesignPatternDetection";
-	public static final Image CLASS = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_CLASS);
-	public static final Image METHOD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_OBJS_PUBLIC);
-	public static final Image FIELD = JavaUI.getSharedImages().getImage(org.eclipse.jdt.ui.ISharedImages.IMG_FIELD_PRIVATE);
 	private static final String MESSAGE_DIALOG_TITLE = "Design Pattern Detection";
 
 	private TreeViewer viewer;
@@ -194,14 +186,40 @@ public class DesignPatternDetection extends ViewPart {
 			if(obj instanceof PatternInstance.Entry) {
 				PatternInstance.Entry entry = (PatternInstance.Entry)obj;
 				RoleType roleType = entry.getRoleType();
+				String elementFullName = entry.getElementName();
 				switch (index) {
 				case 0:
-					if(roleType.equals(RoleType.CLASS))
-						image = CLASS;
-					else if(roleType.equals(RoleType.FIELD))
-						image = FIELD;
-					else if(roleType.equals(RoleType.METHOD))
-						image = METHOD;
+					if(roleType.equals(RoleType.CLASS)) {
+						ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, elementFullName);
+						if(sourceJavaElement != null) {
+							IType type = IJavaElementRecovery.getIType(sourceJavaElement, elementFullName);
+							image = IJavaElementRecovery.getImage(type);
+						}
+					}
+					else if(roleType.equals(RoleType.FIELD)) {
+						String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
+						String fieldFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
+						ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, qualifiedClassName);
+						if(sourceJavaElement != null) {
+							IType type = IJavaElementRecovery.getIType(sourceJavaElement, qualifiedClassName);
+							if(type != null) {
+								IField field = IJavaElementRecovery.getIField(type, fieldFullSignature);
+								image = IJavaElementRecovery.getImage(field);
+							}
+						}
+					}
+					else if(roleType.equals(RoleType.METHOD)) {
+						String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
+						String methodFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
+						ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, qualifiedClassName);
+						if(sourceJavaElement != null) {
+							IType type = IJavaElementRecovery.getIType(sourceJavaElement, qualifiedClassName);
+							if(type != null) {
+								IMethod method = IJavaElementRecovery.getIMethod(type, methodFullSignature);
+								image = IJavaElementRecovery.getImage(method);
+							}
+						}
+					}
 				default:
 					break;
 				}
@@ -389,18 +407,9 @@ public class DesignPatternDetection extends ViewPart {
 					String elementFullName = entry.getElementName();
 					if(entry.getRoleType().equals(RoleType.CLASS)) {
 						try {
-							String compilationUnitName = null;
-							if(elementFullName.contains("$")) {
-								//inner class
-								String enclosingClass = elementFullName.substring(0, elementFullName.indexOf("$"));
-								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
-							}
-							else {
-								compilationUnitName = elementFullName.replace(".", "/") + ".java";
-							}
-							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
+							ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, elementFullName);
 							if(sourceJavaElement != null) {
-								IType type = getIType(sourceJavaElement, elementFullName);
+								IType type = IJavaElementRecovery.getIType(sourceJavaElement, elementFullName);
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
 								if(type != null) {
 									ISourceRange sourceRange = type.getNameRange();
@@ -419,21 +428,12 @@ public class DesignPatternDetection extends ViewPart {
 						try {
 							String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
 							String methodFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
-							String compilationUnitName = null;
-							if(qualifiedClassName.contains("$")) {
-								//inner class
-								String enclosingClass = qualifiedClassName.substring(0, qualifiedClassName.indexOf("$"));
-								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
-							}
-							else {
-								compilationUnitName = qualifiedClassName.replace(".", "/") + ".java";
-							}
-							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
+							ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, qualifiedClassName);
 							if(sourceJavaElement != null) {
-								IType type = getIType(sourceJavaElement, qualifiedClassName);
+								IType type = IJavaElementRecovery.getIType(sourceJavaElement, qualifiedClassName);
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
 								if(type != null) {
-									IMethod method = getIMethod(type, methodFullSignature);
+									IMethod method = IJavaElementRecovery.getIMethod(type, methodFullSignature);
 									ISourceRange sourceRange = null;
 									if(method != null) {
 										sourceRange = method.getNameRange();
@@ -456,21 +456,12 @@ public class DesignPatternDetection extends ViewPart {
 						try {
 							String qualifiedClassName = elementFullName.substring(0, elementFullName.indexOf("::"));
 							String fieldFullSignature = elementFullName.substring(elementFullName.indexOf("::")+2, elementFullName.length());
-							String compilationUnitName = null;
-							if(qualifiedClassName.contains("$")) {
-								//inner class
-								String enclosingClass = qualifiedClassName.substring(0, qualifiedClassName.indexOf("$"));
-								compilationUnitName = enclosingClass.replace(".", "/") + ".java";
-							}
-							else {
-								compilationUnitName = qualifiedClassName.replace(".", "/") + ".java";
-							}
-							ICompilationUnit sourceJavaElement = getICompilationUnit(activeProject, compilationUnitName);
+							ICompilationUnit sourceJavaElement = IJavaElementRecovery.getICompilationUnitFromFullyQualifiedClassName(activeProject, qualifiedClassName);
 							if(sourceJavaElement != null) {
-								IType type = getIType(sourceJavaElement, qualifiedClassName);
+								IType type = IJavaElementRecovery.getIType(sourceJavaElement, qualifiedClassName);
 								ITextEditor sourceEditor = (ITextEditor)JavaUI.openInEditor(sourceJavaElement);
 								if(type != null) {
-									IField field = getIField(type, fieldFullSignature);
+									IField field = IJavaElementRecovery.getIField(type, fieldFullSignature);
 									ISourceRange sourceRange = null;
 									if(field != null) {
 										sourceRange = field.getNameRange();
@@ -507,7 +498,7 @@ public class DesignPatternDetection extends ViewPart {
 		if(!markers.isEmpty()) {
 			throw new CompilationErrorDetectedException(markers);
 		}
-		new BytecodeReader(inputDir, monitor);
+		new BytecodeReader(activeProject, inputDir, monitor);
 		SystemObject so = BytecodeReader.getSystemObject();
 		SystemGenerator sg = new SystemGenerator(so);
 		SortedSet<ClusterSet.Entry> clusterSet = sg.getClusterSet().getInvokingClusterSet();
@@ -623,134 +614,6 @@ public class DesignPatternDetection extends ViewPart {
 			e.printStackTrace();
 		}
 		return result;
-	}
-
-	private static ICompilationUnit getICompilationUnit(IJavaProject iJavaProject, String fullName) {
-		try {
-			IClasspathEntry[] classpathEntries = iJavaProject.getResolvedClasspath(true);
-			for(int i = 0; i < classpathEntries.length; i++){
-				IClasspathEntry entry = classpathEntries[i];
-
-				if(entry.getContentKind() == IPackageFragmentRoot.K_SOURCE){
-					IPath path = entry.getPath();  
-					if (path.toString().length() > iJavaProject.getProject().getName().length() + 2) {
-						String fullPath = path.toString().substring(iJavaProject.getProject().getName().length() + 2) + "/" + fullName;
-
-						ICompilationUnit iCompilationUnit = (ICompilationUnit)JavaCore.create(iJavaProject.getProject().getFile(fullPath));
-						if (iCompilationUnit != null && iCompilationUnit.exists())
-							return iCompilationUnit;
-					}
-				}
-			}
-		} catch (JavaModelException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	private static IField getIField(IType iType, String fieldFullSignature) throws JavaModelException {
-		String fieldName = fieldFullSignature.substring(0, fieldFullSignature.indexOf(":"));
-		String qualifiedType = fieldFullSignature.substring(fieldFullSignature.indexOf(":")+1, fieldFullSignature.length());
-		for(IField iField : iType.getFields()) {
-			if(iField.getElementName().equals(fieldName)) {
-				String nonQualifiedType = Signature.toString(iField.getTypeSignature());
-				if(equalTypes(qualifiedType, nonQualifiedType)) {
-					return iField;
-				}
-			}
-		}
-		return null;
-	}
-
-	private static IMethod getIMethod(IType iType, String methodFullSignature) throws JavaModelException {
-		String methodName = methodFullSignature.substring(0, methodFullSignature.indexOf("("));
-		String parameters = methodFullSignature.substring(methodFullSignature.indexOf("(")+1, methodFullSignature.indexOf(")"));
-		String[] qualifiedParameterTypes;
-		if(parameters.equals("")) {
-			qualifiedParameterTypes = new String[0];
-		}
-		else {
-			qualifiedParameterTypes = parameters.split(", ");
-		}
-		String qualifiedReturnType = methodFullSignature.substring(methodFullSignature.indexOf(":")+1, methodFullSignature.length());
-		for(IMethod iMethod : iType.getMethods()) {
-			if(iMethod.getElementName().equals(methodName)) {
-				String returnType = iMethod.getReturnType();
-				String[] parameterTypes = iMethod.getParameterTypes();
-				String nonQualifiedReturnType = Signature.toString(returnType);
-				boolean returnTypeMatch = false;
-				if(equalTypes(qualifiedReturnType, nonQualifiedReturnType)) {
-					returnTypeMatch = true;
-				}
-				boolean parameterTypesMatch = true;
-				if(parameterTypes.length == qualifiedParameterTypes.length) {
-					for(int i=0; i<qualifiedParameterTypes.length; i++) {
-						String nonQualifiedParameterType = Signature.toString(parameterTypes[i]);
-						String qualifiedParameterType = qualifiedParameterTypes[i];
-						if(!equalTypes(qualifiedParameterType, nonQualifiedParameterType)) {
-							parameterTypesMatch = false;
-						}
-					}
-				}
-				else {
-					parameterTypesMatch = false;
-				}
-				if(returnTypeMatch && parameterTypesMatch)
-					return iMethod;
-			}
-		}
-		return null;
-	}
-
-	private static boolean equalTypes(String qualifiedType, String nonQualifiedType) {
-		qualifiedType = qualifiedType.replaceAll("\\$", ".");
-		if(nonQualifiedType.contains("<") && nonQualifiedType.contains(">")) {
-			String nonQualifiedTypeWithoutGeneric = nonQualifiedType.substring(0, nonQualifiedType.indexOf("<")) +
-					nonQualifiedType.substring(nonQualifiedType.lastIndexOf(">")+1, nonQualifiedType.length());
-			return qualifiedType.endsWith(nonQualifiedTypeWithoutGeneric);
-		}
-		return qualifiedType.endsWith(nonQualifiedType);
-	}
-
-	private static IType getIType(ICompilationUnit iCompilationUnit, String qualifiedClassName) throws JavaModelException {
-		List<IType> allTypes = getAllTypesIncludingAnonymous(iCompilationUnit);
-		for(IType iType : allTypes) {
-			if(iType.getFullyQualifiedName().equals(qualifiedClassName)) {
-				return iType;
-			}
-		}
-		return null;
-	}
-
-	private static List<IType> getAllTypesIncludingAnonymous(ICompilationUnit iCompilationUnit) throws JavaModelException {
-		List<IType> allTypes = new ArrayList<IType>();
-		IType[] topLevelAndNestedTypes = iCompilationUnit.getAllTypes();
-		for(IType iType : topLevelAndNestedTypes) {
-			allTypes.add(iType);
-			for(IField iField : iType.getFields()) {
-				IJavaElement[] children = iField.getChildren();
-				for(IJavaElement element : children) {
-					if(element instanceof IType) {
-						IType type = (IType)element;
-						if(type.isAnonymous()) {
-							allTypes.add(type);
-						}
-					}
-				}
-			}
-			for(IMethod iMethod : iType.getMethods()) {
-				IJavaElement[] children = iMethod.getChildren();
-				for(IJavaElement element : children) {
-					if(element instanceof IType) {
-						IType type = (IType)element;
-						if(type.isAnonymous()) {
-							allTypes.add(type);
-						}
-					}
-				}
-			}
-		}
-		return allTypes;
 	}
 
 	/**

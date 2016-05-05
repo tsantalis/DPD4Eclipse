@@ -7,6 +7,7 @@ import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.MarginBorder;
 import org.eclipse.draw2d.ToolbarLayout;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Image;
 
 public class ClassFigure extends Figure {
 	private CompartmentFigure fieldFigure = new CompartmentFigure();
@@ -15,7 +16,7 @@ public class ClassFigure extends Figure {
 	private SectionCompartment methodSectionCompartment ;
 	private SectionCompartment fieldSectionCompartment = new SectionCompartment(3) ;
 	
-	public ClassFigure(String name, Color color) {
+	public ClassFigure(String name, Image image, Color color) {
 		ToolbarLayout layout = new ToolbarLayout();
 		layout.setSpacing(5);
 		setLayoutManager(layout);	
@@ -23,7 +24,7 @@ public class ClassFigure extends Figure {
 		setBackgroundColor(color);
 		setOpaque(true);
 
-		Label className = new Label(name, DecorationConstants.CLASS);
+		Label className = new Label(name, image);
 		className.setToolTip(new Label(name));
 		className.setFont(DecorationConstants.classFont);
 		add(className);

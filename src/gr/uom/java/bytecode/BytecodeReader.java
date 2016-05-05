@@ -5,6 +5,7 @@ import java.util.*;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jdt.core.IJavaProject;
 import org.objectweb.asm.*;
 import org.objectweb.asm.signature.SignatureReader;
 import org.objectweb.asm.util.TraceSignatureVisitor;
@@ -13,9 +14,11 @@ import org.objectweb.asm.tree.*;
 public class BytecodeReader {
 
 	private static SystemObject so;
+	private static IJavaProject examinedProject;
 
-	public BytecodeReader(File dir, IProgressMonitor monitor) {
+	public BytecodeReader(IJavaProject iJavaProject, File dir, IProgressMonitor monitor) {
 		so = new SystemObject();
+		examinedProject = iJavaProject;
 		if(monitor != null)
 			monitor.beginTask("Parsing selected Java Project", getNumberOfClassFiles(dir));
 		recurse(dir, monitor);
@@ -288,5 +291,9 @@ public class BytecodeReader {
 
     public static SystemObject getSystemObject() {
 		return so;
+	}
+
+	public static IJavaProject getExaminedProject() {
+		return examinedProject;
 	}
 }

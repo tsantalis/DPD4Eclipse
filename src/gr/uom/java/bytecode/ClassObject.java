@@ -264,6 +264,10 @@ public class ClassObject {
     	return false;
     }
 
+    public boolean isInner() {
+    	return name.contains("$");
+    }
+
     public String toString() {
         StringBuilder sb = new StringBuilder();
         if(!access.equals(Access.NONE))
