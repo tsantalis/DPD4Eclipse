@@ -103,7 +103,37 @@ public class ClassObject {
     		if(fo.getSignature().equals(fio.getSignature()))
     			return fo;
     	}
+    	return getFieldGenericMatch(fio);
+    }
+
+    public FieldObject getFieldGenericMatch(FieldInstructionObject fio) {
+    	ListIterator<FieldObject> fi = getFieldIterator();
+    	while(fi.hasNext()) {
+    		FieldObject fo = fi.next();
+    		if(fo.equalsGeneric(fio))
+    			return fo;
+    	}
     	return null;
+    }
+
+    public boolean isSubclassOf(String className) {
+    	if(this.name.equals(className)) {
+    		return true;
+    	}
+    	else {
+    		ListIterator<String> superClassIterator = getSuperclassIterator();
+    		while(superClassIterator.hasNext()) {
+    			String superClassName = superClassIterator.next();
+    			ClassObject superClass = BytecodeReader.getSystemObject().getClassObject(superClassName);
+    			if(superClass != null) {
+    				boolean isSubclass = superClass.isSubclassOf(className);
+    				if(isSubclass) {
+    					return true;
+    				}
+    			}
+    		}
+    	}
+    	return false;
     }
 
     public boolean hasFieldType(String className) {

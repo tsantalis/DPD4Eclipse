@@ -74,6 +74,18 @@ public class FieldObject {
         return this.name.equals(fio.getName()) && this.type.getClassType().equals(fio.getClassType());
     }
 
+    public boolean equalsGeneric(FieldInstructionObject fio) {
+    	return this.className.equals(fio.getOwnerClass()) && this.name.equals(fio.getName()) && equalClassType(this.type.getClassType(), fio.getClassType());
+    }
+
+    private boolean equalClassType(String thisClassType, String otherClassType) {
+    	//this case covers type parameter names, such as E, K, N, T, V, S, U
+    	if(thisClassType.length() == 1 || otherClassType.length() == 1)
+    		return true;
+    	else
+    		return thisClassType.equals(otherClassType);
+    }
+
     public String getSignature() {
     	StringBuilder sb = new StringBuilder();
         sb.append(className).append("::");

@@ -2,9 +2,7 @@ package dpd4eclipse.visualization;
 
 import gr.uom.java.bytecode.Access;
 import gr.uom.java.bytecode.ClassObject;
-import gr.uom.java.bytecode.FieldInstructionObject;
 import gr.uom.java.bytecode.FieldObject;
-import gr.uom.java.bytecode.MethodInvocationObject;
 import gr.uom.java.bytecode.MethodObject;
 
 import java.util.ArrayList;
@@ -49,9 +47,9 @@ public class DesignPatternDiagram {
 			Set<MethodObject> methods = data.getMethodsForClass(classObject);
 			Set<MethodObject> patternMethods = data.getPatternMethodsForClass(classObject);
 			Set<FieldObject> fields = data.getFieldsForClass(classObject);
-			Map<MethodObject, Map<MethodInvocationObject, Integer>> internalMethodInvocationMap = data.getInternalMethodInvocationMapForClass(classObject);
-			Map<MethodObject, Map<FieldInstructionObject, Integer>> internalFieldReadMap = data.getInternalFieldReadMapForClass(classObject);
-			Map<MethodObject, Map<MethodInvocationObject, Integer>> externalMethodInvocationMap = data.getExternalMethodInvocationMapForClass(classObject);
+			Map<MethodObject, Map<MethodObject, Integer>> internalMethodInvocationMap = data.getInternalMethodInvocationMapForClass(classObject);
+			Map<MethodObject, Map<FieldObject, Integer>> internalFieldReadMap = data.getInternalFieldReadMapForClass(classObject);
+			Map<MethodObject, Map<MethodObject, Integer>> externalMethodInvocationMap = data.getExternalMethodInvocationMapForClass(classObject);
 			
 			int classWidth = 450;
 			boolean oneSection = false;
@@ -88,9 +86,9 @@ public class DesignPatternDiagram {
 			MethodClassSection sectionThree = classFigure.getMethodSectionCompartment().getSectionThree();
 			
 			//Adds Connections from Methods to Methods in the other Pattern Classes
-			for(Entry<MethodObject, Map<MethodInvocationObject, Integer>> entry : externalMethodInvocationMap.entrySet()){
+			for(Entry<MethodObject, Map<MethodObject, Integer>> entry : externalMethodInvocationMap.entrySet()){
 				MethodObject method = entry.getKey();
-				Map<MethodInvocationObject, Integer> connectionMap = entry.getValue();
+				Map<MethodObject, Integer> connectionMap = entry.getValue();
 				EntityFigure connectionSource= null;
 				boolean contains= false;
 
@@ -108,40 +106,22 @@ public class DesignPatternDiagram {
 					connectionSource = methodFigure;
 				}
 
-				for(Entry<MethodInvocationObject, Integer> map  : connectionMap.entrySet()){
-					MethodInvocationObject methodInvocation = map.getKey();
+				for(Entry<MethodObject, Integer> map  : connectionMap.entrySet()){
+					MethodObject invokedMethod = map.getKey();
 					Integer occurences = map.getValue();
-
-					MethodObject invokedMethod = null;
-					for(ClassObject classObject2 : classMap.values()) {
-						MethodObject invokedMethod2 = classObject2.findMethodIncludingSuperTypes(methodInvocation.getSignature());
-						if(invokedMethod2 != null) {
-							invokedMethod = invokedMethod2;
-							break;
-						}
-					}
-					if(invokedMethod != null) {
-						EntityFigure invokedMethodFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod),
-								patternMethods.contains(invokedMethod) ? connectionList : new ArrayList<JConnection>());
-						contains= false;
-						for(ClassFigure source : classFigures) {
-							for(Object child : source.getMethodSectionCompartment().getSectionOne().getChildren()){
-								EntityFigure entity = (EntityFigure) child;
-								if (entity.getName().equals(invokedMethodFigure.getName())){
-									contains = true;
-									JConnection connection =connectionSource.addToSourceMethodConnection(ConnectionType.METHOD_CALL_SOURCE,entity, occurences);
-									connectionList.add(connection);
-									connections.add(connection);
-								}
+					EntityFigure invokedMethodFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod),
+							patternMethods.contains(invokedMethod) ? connectionList : new ArrayList<JConnection>());
+					contains= false;
+					for(ClassFigure source : classFigures) {
+						for(Object child : source.getMethodSectionCompartment().getSectionOne().getChildren()){
+							EntityFigure entity = (EntityFigure) child;
+							if (entity.getName().equals(invokedMethodFigure.getName())){
+								contains = true;
+								JConnection connection =connectionSource.addToSourceMethodConnection(ConnectionType.METHOD_CALL_SOURCE,entity, occurences);
+								connectionList.add(connection);
+								connections.add(connection);
 							}
 						}
-
-						/*if(!contains)	{
-							source.getMethodsCompartment().addFigure(invokedMethodFigure);
-							JConnection connection =connectionSource.addToSourceMethodConnection(ConnectionType.METHOD_CALL_SOURCE,invokedMethodFigure, occurences);
-							connectionList.add(connection);
-							connections.add(connection);
-						}*/
 					}
 				}
 			}
@@ -149,10 +129,10 @@ public class DesignPatternDiagram {
 			int bendHeight;
 						
 			//Adds Connections from Methods to other Methods in the same Class
-			for(Entry<MethodObject, Map<MethodInvocationObject, Integer>> entry : internalMethodInvocationMap.entrySet()){
+			for(Entry<MethodObject, Map<MethodObject, Integer>> entry : internalMethodInvocationMap.entrySet()){
 				int bendGap = -20;
 				MethodObject method = entry.getKey();
-				Map<MethodInvocationObject, Integer> connectionMap = entry.getValue();
+				Map<MethodObject, Integer> connectionMap = entry.getValue();
 				EntityFigure connectionSource = null;
 				boolean contains= false;
 				boolean sourceinRightSection = false;
@@ -190,62 +170,71 @@ public class DesignPatternDiagram {
 					connectionSource = methodFigure;
 				}
 				
-				for(Entry<MethodInvocationObject, Integer> map  : connectionMap.entrySet()){
+				for(Entry<MethodObject, Integer> map  : connectionMap.entrySet()){
 					contains = false;
-					MethodInvocationObject target = map.getKey();
-					MethodObject invokedMethod = classObject.findMethodIncludingSuperTypes(target.getSignature());
+					MethodObject invokedMethod = map.getKey();
 					Integer occurences = map.getValue();
+					EntityFigure targetFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod),
+							patternMethods.contains(invokedMethod) ? connectionList : new ArrayList<JConnection>());
 
-					if(invokedMethod != null) {
-						EntityFigure targetFigure = new EntityFigure(invokedMethod.getSignature().toString(), createMethodDecoration(invokedMethod),
-								patternMethods.contains(invokedMethod) ? connectionList : new ArrayList<JConnection>());
+					//checks if Target Connection Method is in Left Section
+					for(Object child : sectionOne.getChildren()){
+						EntityFigure entity = (EntityFigure) child;
+						if (entity.getName().equals(targetFigure.getName())){
+							contains = true;
+							if(sourceinRightSection){
+								JConnection connection = connectionSource.addLeftRightMethodConnection(ConnectionType.METHOD_CALL_TARGET,entity, occurences);
+								connectionList.add(connection);
+								connections.add(connection);
+							}
+							else {
+								if(oneSection)
+									bendHeight = classWidth + bendGap;
+								else
+									bendHeight = sectionWidth + bendGap;
+								JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET, entity, occurences, bendHeight);
+								connectionList.add(connection);
+								connections.add(connection);
+							}
+						}
+					}
 
-						//checks if Target Connection Method is in Left Section
-						for(Object child : sectionOne.getChildren()){
+					//checks if Target Connection Method is in Right Section
+					if(!contains){
+						for(Object child : sectionThree.getChildren()){
 							EntityFigure entity = (EntityFigure) child;
 							if (entity.getName().equals(targetFigure.getName())){
 								contains = true;
 								if(sourceinRightSection){
-									JConnection connection = connectionSource.addLeftRightMethodConnection(ConnectionType.METHOD_CALL_TARGET,entity, occurences);
+									bendHeight = sectionWidth + bendGap;
+									JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET,entity, occurences, bendHeight);
 									connectionList.add(connection);
 									connections.add(connection);
 								}
 								else {
-									if(oneSection)
-										bendHeight = classWidth + bendGap;
-									else
-										bendHeight = sectionWidth + bendGap;
-									JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET, entity, occurences, bendHeight);
+									JConnection connection = connectionSource.addRightLeftMethodConnection(ConnectionType.METHOD_CALL_TARGET,entity, occurences);
 									connectionList.add(connection);
 									connections.add(connection);
 								}
 							}
 						}
+					}
 
-						//checks if Target Connection Method is in Right Section
-						if(!contains){
-							for(Object child : sectionThree.getChildren()){
-								EntityFigure entity = (EntityFigure) child;
-								if (entity.getName().equals(targetFigure.getName())){
-									contains = true;
-									if(sourceinRightSection){
-										bendHeight = sectionWidth + bendGap;
-										JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET,entity, occurences, bendHeight);
-										connectionList.add(connection);
-										connections.add(connection);
-									}
-									else {
-										JConnection connection = connectionSource.addRightLeftMethodConnection(ConnectionType.METHOD_CALL_TARGET,entity, occurences);
-										connectionList.add(connection);
-										connections.add(connection);
-									}
-								}
-							}
+					if(!contains){
+						if(patternMethods.contains(invokedMethod)) {
+							sectionOne.addFigure(targetFigure);
+							if(oneSection)
+								bendHeight = classWidth + bendGap;
+							else
+								bendHeight = sectionWidth + bendGap;
+							JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET,targetFigure, occurences, bendHeight);
+							connectionList.add(connection);
+							connections.add(connection);
 						}
-
-						if(!contains){
-							if(patternMethods.contains(invokedMethod)) {
-								sectionOne.addFigure(targetFigure);
+						else {
+							//If its not already there, add it to Right Section
+							sectionThree.addFigure(targetFigure);
+							if(sourceinRightSection){
 								if(oneSection)
 									bendHeight = classWidth + bendGap;
 								else
@@ -255,22 +244,9 @@ public class DesignPatternDiagram {
 								connections.add(connection);
 							}
 							else {
-								//If its not already there, add it to Right Section
-								sectionThree.addFigure(targetFigure);
-								if(sourceinRightSection){
-									if(oneSection)
-										bendHeight = classWidth + bendGap;
-									else
-										bendHeight = sectionWidth + bendGap;
-									JConnection connection = connectionSource.addToSameClassMethodConnectionLL(ConnectionType.METHOD_CALL_TARGET,targetFigure, occurences, bendHeight);
-									connectionList.add(connection);
-									connections.add(connection);
-								}
-								else {
-									JConnection connection = connectionSource.addRightLeftMethodConnection(ConnectionType.METHOD_CALL_TARGET, targetFigure, occurences);
-									connectionList.add(connection);
-									connections.add(connection);
-								}
+								JConnection connection = connectionSource.addRightLeftMethodConnection(ConnectionType.METHOD_CALL_TARGET, targetFigure, occurences);
+								connectionList.add(connection);
+								connections.add(connection);
 							}
 						}
 					}
@@ -278,11 +254,11 @@ public class DesignPatternDiagram {
 			}
 
 			//Adds Read Connections from Methods to Fields in the same Class
-			for(Entry<MethodObject, Map<FieldInstructionObject, Integer>> entry : internalFieldReadMap.entrySet()){
+			for(Entry<MethodObject, Map<FieldObject, Integer>> entry : internalFieldReadMap.entrySet()){
 				int bendGap = 10;
 
 				MethodObject method = entry.getKey();
-				Map<FieldInstructionObject, Integer> connectionMap = entry.getValue();
+				Map<FieldObject, Integer> connectionMap = entry.getValue();
 				EntityFigure connectionSource = null;
 				boolean contains= false;
 				boolean inRightSection = false;
@@ -318,35 +294,32 @@ public class DesignPatternDiagram {
 					connectionSource = methodFigure;
 				}
 
-				for(Entry<FieldInstructionObject, Integer> map  : connectionMap.entrySet()){
-					FieldInstructionObject fieldInstruction = map.getKey();
-					FieldObject accessedField = classObject.findFieldIncludingSuperTypes(fieldInstruction);
+				for(Entry<FieldObject, Integer> map  : connectionMap.entrySet()){
+					FieldObject accessedField = map.getKey();
 					Integer occurences = map.getValue();
-					if(accessedField != null) {
-						EntityFigure fieldFigure = new EntityFigure(accessedField.getSignature(), createFieldDecoration(accessedField), new ArrayList<JConnection>());
-						List fieldFigures;
-						if (oneSection){
-							fieldFigures = classFigure.getFieldsCompartment().getChildren();
-							bendHeight = classWidth + bendGap;
-						}
-						else {
-							fieldFigures = classFigure.getFieldSectionCompartment().getSectionTwo().getChildren();
-							bendHeight = sectionWidth + bendGap;
-						}
+					EntityFigure fieldFigure = new EntityFigure(accessedField.getSignature(), createFieldDecoration(accessedField), new ArrayList<JConnection>());
+					List fieldFigures;
+					if (oneSection){
+						fieldFigures = classFigure.getFieldsCompartment().getChildren();
+						bendHeight = classWidth + bendGap;
+					}
+					else {
+						fieldFigures = classFigure.getFieldSectionCompartment().getSectionTwo().getChildren();
+						bendHeight = sectionWidth + bendGap;
+					}
 
-						for(Object child : fieldFigures){
-							EntityFigure entity = (EntityFigure) child;
-							if (entity.getName().equals(fieldFigure.getName())){
-								if(inRightSection || oneSection){
-									JConnection connection = connectionSource.addToSameClassReadConnectionRR(ConnectionType.READ_FIELD_TARGET,entity, occurences,  bendHeight);
-									connectionList.add(connection);
-									connections.add(connection);
-								}
-								else{
-									JConnection connection = connectionSource.addToSameClassReadConnectionLL(ConnectionType.READ_FIELD_TARGET,entity, occurences,bendHeight);
-									connectionList.add(connection);
-									connections.add(connection);
-								}
+					for(Object child : fieldFigures){
+						EntityFigure entity = (EntityFigure) child;
+						if (entity.getName().equals(fieldFigure.getName())){
+							if(inRightSection || oneSection){
+								JConnection connection = connectionSource.addToSameClassReadConnectionRR(ConnectionType.READ_FIELD_TARGET,entity, occurences,  bendHeight);
+								connectionList.add(connection);
+								connections.add(connection);
+							}
+							else{
+								JConnection connection = connectionSource.addToSameClassReadConnectionLL(ConnectionType.READ_FIELD_TARGET,entity, occurences,bendHeight);
+								connectionList.add(connection);
+								connections.add(connection);
 							}
 						}
 					}
