@@ -6,7 +6,6 @@ import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.LineBorder;
 import org.eclipse.draw2d.MarginBorder;
 import org.eclipse.draw2d.ToolbarLayout;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
 public class ClassFigure extends Figure {
@@ -16,19 +15,28 @@ public class ClassFigure extends Figure {
 	private SectionCompartment methodSectionCompartment ;
 	private SectionCompartment fieldSectionCompartment = new SectionCompartment(3) ;
 	
-	public ClassFigure(String name, Image image, Color color) {
+	public ClassFigure(String name, Image image, String stereotypeName) {
 		ToolbarLayout layout = new ToolbarLayout();
 		layout.setSpacing(5);
 		setLayoutManager(layout);	
 		setBorder(new CompoundBorder( new LineBorder(1), new MarginBorder(0, 0, 0, 0)));
-		setBackgroundColor(color);
+		setBackgroundColor(DecorationConstants.classColor);
 		setOpaque(true);
 
-		Label className = new Label(name, image);
+		Label stereotype = new Label("<<" + stereotypeName + ">>");
+		stereotype.setToolTip(new Label("<<" + stereotypeName + ">>"));
+		stereotype.setFont(DecorationConstants.classFont);
+		add(stereotype);
+		
+		Label className = new Label(simplifyName(name), image);
 		className.setToolTip(new Label(name));
 		className.setFont(DecorationConstants.classFont);
 		add(className);
 		new ClassFigureMover(this);
+	}
+
+	private static String simplifyName(String name) {
+		return name.substring(name.lastIndexOf(".")+1, name.length());
 	}
 
 	public void addThreeCompartments(){

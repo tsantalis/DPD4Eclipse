@@ -73,7 +73,7 @@ public class DesignPatternDiagram {
 			int sectionWidth = classWidth/3;
 			
 			//Creates Class
-			final ClassFigure classFigure = new ClassFigure(classObject.getName(), DecorationConstants.createClassDecoration(classObject), DecorationConstants.classColor);
+			final ClassFigure classFigure = new ClassFigure(classObject.getName(), DecorationConstants.createClassDecoration(classObject), classRoleName);
 			
 			if(oneSection) {
 				classFigure.addFieldCompartment();

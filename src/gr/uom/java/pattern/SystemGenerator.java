@@ -328,7 +328,11 @@ public class SystemGenerator {
 		while(fii.hasNext()) {
 			FieldInstructionObject fio = fii.next();
 			int posX = systemObject.getPositionInClassList(fio.getOwnerClass());
-			if(posX != -1 && fio.getClassType().equals(mio.getOriginClassName())) {
+			String fieldType = fio.getClassType();
+			if(fieldType.endsWith("[]")) {
+				fieldType = fieldType.substring(0, fieldType.indexOf("["));
+			}
+			if(posX != -1 && fieldType.equals(mio.getOriginClassName())) {
 				FieldObject tempX = co.getField(fio);
 				if(tempX != null && !fields.contains(tempX) && !tempX.getName().startsWith("val$") && !tempX.getName().startsWith("this$")) {
 					fields.add(tempX);
