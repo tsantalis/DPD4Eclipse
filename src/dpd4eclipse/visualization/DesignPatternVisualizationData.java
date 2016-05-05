@@ -86,10 +86,12 @@ public class DesignPatternVisualizationData {
 							else if(getClassNames().contains(methodInvocation.getOriginClassName())) {
 								MethodObject invokedMethod = null;
 								for(ClassObject classObject2 : classMap.values()) {
-									MethodObject invokedMethod2 = classObject2.findMethodIncludingSuperTypes(methodInvocation.getSignature());
-									if(invokedMethod2 != null) {
-										invokedMethod = invokedMethod2;
-										break;
+									if(!classObject2.equals(classObject)) {
+										MethodObject invokedMethod2 = classObject2.findMethodIncludingSuperTypes(methodInvocation.getSignature());
+										if(invokedMethod2 != null) {
+											invokedMethod = invokedMethod2;
+											break;
+										}
 									}
 								}
 								if(invokedMethod != null) {

@@ -6,6 +6,7 @@ import gr.uom.java.bytecode.FieldObject;
 import gr.uom.java.bytecode.MethodObject;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,21 @@ public class DesignPatternDiagram {
 		List<ClassFigure> classFigures = new ArrayList<ClassFigure>();
 		
 		Map<String, ClassObject> classMap = data.getClassMap();
+		//process first the classes without external outgoing connections
+		Set<String> orderedClassRoleNames = new LinkedHashSet<String>();
+		Set<String> classRoleNamesToBeAppended = new LinkedHashSet<String>();
 		for(String classRoleName : classMap.keySet()) {
+			ClassObject classObject = classMap.get(classRoleName);
+			if(data.getExternalMethodInvocationMapForClass(classObject).isEmpty()) {
+				orderedClassRoleNames.add(classRoleName);
+			}
+			else {
+				classRoleNamesToBeAppended.add(classRoleName);
+			}
+		}
+		orderedClassRoleNames.addAll(classRoleNamesToBeAppended);
+		
+		for(String classRoleName : orderedClassRoleNames) {
 			ClassObject classObject = classMap.get(classRoleName);
 			Set<MethodObject> methods = data.getMethodsForClass(classObject);
 			Set<MethodObject> patternMethods = data.getPatternMethodsForClass(classObject);
