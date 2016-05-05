@@ -300,7 +300,7 @@ public class SystemGenerator {
                 while(mii.hasNext()) {
                     MethodInvocationObject mio = mii.next();
                     int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                    if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName())) {
+                    if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName()) && !mio.getMethodName().equals("<init>")) {
                         MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
                         if(temp != null && temp.isAbstract()) {
                         	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
@@ -592,7 +592,7 @@ public class SystemGenerator {
                                     if(pos2 != -1 && !co.getName().equals(mio.getOriginClassName()) &&
                                         co.hasFieldType(mio.getOriginClassName()) &&
                                         !superclass.equals(mio.getOriginClassName()) &&
-                                        !belongInSameHierarchy(co.getName(),mio.getOriginClassName())) {
+                                        !belongInSameHierarchy(co.getName(),mio.getOriginClassName()) && !mio.getMethodName().equals("<init>")) {
                                     	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
                                     	if(!fields.isEmpty()) {	
                                             m[counter][pos2] = 1;
