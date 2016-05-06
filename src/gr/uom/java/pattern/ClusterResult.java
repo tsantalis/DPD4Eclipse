@@ -117,8 +117,13 @@ public class ClusterResult {
 
     private int relationshipScore(ClusterResult.Entry e1, ClusterResult.Entry e2) {
         int score = 0;
-        if(patternDescriptor.getAbstractMethodInvocationMatrix() != null) {
-            double[][] matrix = systemContainer.getAbstractMethodInvocationMatrix();
+        if(patternDescriptor.getAbstractMethodInvocationFromAbstractClassMatrix() != null) {
+            double[][] matrix = systemContainer.getAbstractMethodInvocationFromAbstractClassMatrix();
+            if(matrix[e1.getPosition()][e2.getPosition()] == 1.0 || matrix[e2.getPosition()][e1.getPosition()] == 1.0)
+                score++;
+        }
+        if(patternDescriptor.getAbstractMethodInvocationFromConcreteClassMatrix() != null) {
+            double[][] matrix = systemContainer.getAbstractMethodInvocationFromConcreteClassMatrix();
             if(matrix[e1.getPosition()][e2.getPosition()] == 1.0 || matrix[e2.getPosition()][e1.getPosition()] == 1.0)
                 score++;
         }
@@ -219,8 +224,12 @@ public class ClusterResult {
     		BehavioralData associationWithInheritanceBehavioralData = systemContainer.getAssociationWithInheritanceBehavioralData();
     		processBehavioralData(associationWithInheritanceBehavioralData, e1, e2, fields, methods);
     	}
-    	if(patternDescriptor.getAbstractMethodInvocationMatrix() != null) {
-    		BehavioralData abstractMethodInvocationBehavioralData = systemContainer.getAbstractMethodInvocationBehavioralData();
+    	if(patternDescriptor.getAbstractMethodInvocationFromAbstractClassMatrix() != null) {
+    		BehavioralData abstractMethodInvocationBehavioralData = systemContainer.getAbstractMethodInvocationFromAbstractClassBehavioralData();
+    		processBehavioralData(abstractMethodInvocationBehavioralData, e1, e2, fields, methods);
+    	}
+    	if(patternDescriptor.getAbstractMethodInvocationFromConcreteClassMatrix() != null) {
+    		BehavioralData abstractMethodInvocationBehavioralData = systemContainer.getAbstractMethodInvocationFromConcreteClassBehavioralData();
     		processBehavioralData(abstractMethodInvocationBehavioralData, e1, e2, fields, methods);
     	}
     	return new Object[] {fields, methods};

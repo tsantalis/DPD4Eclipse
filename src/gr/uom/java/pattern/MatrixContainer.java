@@ -8,8 +8,10 @@ public class MatrixContainer {
 	protected double[][] associationWithInheritanceMatrix;
 	protected BehavioralData associationWithInheritanceBehavioralData;
 	protected double[][] abstractMatrix;
-	protected double[][] abstractMethodInvocationMatrix;
-	protected BehavioralData abstractMethodInvocationBehavioralData;
+	protected double[][] abstractMethodInvocationFromAbstractClassMatrix;
+	protected BehavioralData abstractMethodInvocationFromAbstractClassBehavioralData;
+	protected double[][] abstractMethodInvocationFromConcreteClassMatrix;
+	protected BehavioralData abstractMethodInvocationFromConcreteClassBehavioralData;
 	protected double[][] similarAbstractMethodInvocationMatrix;
 	protected BehavioralData similarAbstractMethodInvocationBehavioralData;
 	protected double[][] similarMethodInvocationFromSiblingSubclassMatrix;
@@ -56,12 +58,20 @@ public class MatrixContainer {
 		this.abstractMatrix = m;
 	}
 	
-	public void setAbstractMethodInvocationMatrix(double[][] m) {
-		this.abstractMethodInvocationMatrix = m;
+	public void setAbstractMethodInvocationFromAbstractClassMatrix(double[][] m) {
+		this.abstractMethodInvocationFromAbstractClassMatrix = m;
 	}
 
-    public void setAbstractMethodInvocationBehavioralData(BehavioralData abstractMethodInvocationBehavioralData) {
-		this.abstractMethodInvocationBehavioralData = abstractMethodInvocationBehavioralData;
+    public void setAbstractMethodInvocationFromAbstractClassBehavioralData(BehavioralData abstractMethodInvocationBehavioralData) {
+		this.abstractMethodInvocationFromAbstractClassBehavioralData = abstractMethodInvocationBehavioralData;
+	}
+	
+	public void setAbstractMethodInvocationFromConcreteClassMatrix(double[][] m) {
+		this.abstractMethodInvocationFromConcreteClassMatrix = m;
+	}
+
+    public void setAbstractMethodInvocationFromConcreteClassBehavioralData(BehavioralData abstractMethodInvocationBehavioralData) {
+		this.abstractMethodInvocationFromConcreteClassBehavioralData = abstractMethodInvocationBehavioralData;
 	}
 
     public void setIterativeNonSimilarAbstractMethodInvocationMatrix(double[][] m) {
@@ -144,12 +154,20 @@ public class MatrixContainer {
 		return this.abstractMatrix;
 	}
 	
-	public double[][] getAbstractMethodInvocationMatrix() {
-		return this.abstractMethodInvocationMatrix;
+	public double[][] getAbstractMethodInvocationFromAbstractClassMatrix() {
+		return this.abstractMethodInvocationFromAbstractClassMatrix;
 	}
 
-    public BehavioralData getAbstractMethodInvocationBehavioralData() {
-		return abstractMethodInvocationBehavioralData;
+    public BehavioralData getAbstractMethodInvocationFromAbstractClassBehavioralData() {
+		return abstractMethodInvocationFromAbstractClassBehavioralData;
+	}
+	
+	public double[][] getAbstractMethodInvocationFromConcreteClassMatrix() {
+		return this.abstractMethodInvocationFromConcreteClassMatrix;
+	}
+
+    public BehavioralData getAbstractMethodInvocationFromConcreteClassBehavioralData() {
+		return abstractMethodInvocationFromConcreteClassBehavioralData;
 	}
 
     public double[][] getIterativeNonSimilarAbstractMethodInvocationMatrix() {

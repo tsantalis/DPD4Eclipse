@@ -15,12 +15,20 @@ public class SimilarityAlgorithm {
     public static double[][] getTotalScore(MatrixContainer system, PatternDescriptor pattern) {
         double[][] X = new double[pattern.getClassNameList().size()][system.getClassNameList().size()];
         
-        if(pattern.getAbstractMethodInvocationMatrix() != null) {
-            if(allElementsEqualToZero(system.getAbstractMethodInvocationMatrix())) {
+        if(pattern.getAbstractMethodInvocationFromAbstractClassMatrix() != null) {
+            if(allElementsEqualToZero(system.getAbstractMethodInvocationFromAbstractClassMatrix())) {
                 return null;
             }
             else {
-                X = plus(X,getSimilarityScore(system.getAbstractMethodInvocationMatrix(),pattern.getAbstractMethodInvocationMatrix()));
+                X = plus(X,getSimilarityScore(system.getAbstractMethodInvocationFromAbstractClassMatrix(),pattern.getAbstractMethodInvocationFromAbstractClassMatrix()));
+            }
+        }
+        if(pattern.getAbstractMethodInvocationFromConcreteClassMatrix() != null) {
+            if(allElementsEqualToZero(system.getAbstractMethodInvocationFromConcreteClassMatrix())) {
+                return null;
+            }
+            else {
+                X = plus(X,getSimilarityScore(system.getAbstractMethodInvocationFromConcreteClassMatrix(),pattern.getAbstractMethodInvocationFromConcreteClassMatrix()));
             }
         }
         if(pattern.getIterativeNonSimilarAbstractMethodInvocationMatrix() != null) {

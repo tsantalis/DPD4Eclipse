@@ -2,7 +2,7 @@ package gr.uom.java.pattern;
 
 public enum PatternEnum {
     FACTORY_METHOD, PROTOTYPE, SINGLETON, ADAPTER_COMMAND, COMPOSITE, DECORATOR,
-    OBSERVER, STATE_STRATEGY, TEMPLATE_METHOD, VISITOR, PROXY, PROXY2/*, REDIRECT_IN_FAMILY*/;
+    OBSERVER, STATE_STRATEGY, BRIDGE, TEMPLATE_METHOD, VISITOR, PROXY, PROXY2/*, REDIRECT_IN_FAMILY*/;
 
     public String toString() {
         switch(this) {
@@ -18,6 +18,7 @@ public enum PatternEnum {
             case FACTORY_METHOD: return "Factory Method";
             case PROXY: return "Proxy";
             case PROXY2: return "Proxy2";
+            case BRIDGE: return "Bridge";
             //case REDIRECT_IN_FAMILY: return "RedirectInFamily";
             default: return "";
         }

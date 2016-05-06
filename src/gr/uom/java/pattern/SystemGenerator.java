@@ -31,7 +31,8 @@ public class SystemGenerator {
         this.matrixContainer.setAssociationMatrix(getAssociationMatrix());
         associationWithInheritanceMatrix();
         this.matrixContainer.setAbstractMatrix(getAbstractMatrix());
-        abstractMethodInvocationMatrix();
+        abstractMethodInvocationFromAbstractClassMatrix();
+        abstractMethodInvocationFromConcreteClassMatrix();
         doubleDispatchMatrix();
         similarAbstractMethodInvocationMatrix();
         similarMethodInvocationFromSiblingSubclassMatrix();
@@ -283,7 +284,7 @@ public class SystemGenerator {
         matrixContainer.setFactoryMethodBehavioralData(behavioralData);
     }
 
-    private void abstractMethodInvocationMatrix() {
+    private void abstractMethodInvocationFromAbstractClassMatrix() {
         ListIterator<ClassObject> it = systemObject.getClassListIterator();
         double[][] m = new double[systemObject.getClassNumber()][systemObject.getClassNumber()];
         BehavioralData behavioralData = new BehavioralData();
@@ -291,35 +292,75 @@ public class SystemGenerator {
 
         while(it.hasNext()) {
             ClassObject co = it.next();
+            if(co.isAbstract()) {
+            	ListIterator<MethodObject> methodIt = co.getMethodIterator();
+            	while(methodIt.hasNext()) {
+            		MethodObject mo = methodIt.next();
 
-            ListIterator<MethodObject> methodIt = co.getMethodIterator();
-            while(methodIt.hasNext()) {
-                MethodObject mo = methodIt.next();
-
-                ListIterator<MethodInvocationObject> mii = mo.getMethodInvocationIterator();
-                while(mii.hasNext()) {
-                    MethodInvocationObject mio = mii.next();
-                    int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
-                    if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName()) && !mio.getMethodName().equals("<init>")) {
-                        MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
-                        if(temp != null && temp.isAbstract()) {
-                        	List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
-                            if(!fields.isEmpty()) {
-                            	m[counter][pos] = 1;
-                            	behavioralData.addMethod(counter, pos, mo);
-                            	for(FieldObject field : fields) {
-                            		behavioralData.addField(counter, pos, field);
-                            	}
-                            	//break;
-                            }
-                        }
-                    }
-                }
+            		ListIterator<MethodInvocationObject> mii = mo.getMethodInvocationIterator();
+            		while(mii.hasNext()) {
+            			MethodInvocationObject mio = mii.next();
+            			int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
+            			if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName()) && !mio.getMethodName().equals("<init>")) {
+            				MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
+            				if(temp != null && temp.isAbstract()) {
+            					List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
+            					if(!fields.isEmpty()) {
+            						m[counter][pos] = 1;
+            						behavioralData.addMethod(counter, pos, mo);
+            						for(FieldObject field : fields) {
+            							behavioralData.addField(counter, pos, field);
+            						}
+            						//break;
+            					}
+            				}
+            			}
+            		}
+            	}
             }
             counter++;
         }
-        matrixContainer.setAbstractMethodInvocationMatrix(m);
-        matrixContainer.setAbstractMethodInvocationBehavioralData(behavioralData);
+        matrixContainer.setAbstractMethodInvocationFromAbstractClassMatrix(m);
+        matrixContainer.setAbstractMethodInvocationFromAbstractClassBehavioralData(behavioralData);
+    }
+
+    private void abstractMethodInvocationFromConcreteClassMatrix() {
+        ListIterator<ClassObject> it = systemObject.getClassListIterator();
+        double[][] m = new double[systemObject.getClassNumber()][systemObject.getClassNumber()];
+        BehavioralData behavioralData = new BehavioralData();
+        int counter = 0;
+
+        while(it.hasNext()) {
+            ClassObject co = it.next();
+            if(!co.isAbstract() && !co.isInterface()) {
+            	ListIterator<MethodObject> methodIt = co.getMethodIterator();
+            	while(methodIt.hasNext()) {
+            		MethodObject mo = methodIt.next();
+            		ListIterator<MethodInvocationObject> mii = mo.getMethodInvocationIterator();
+            		while(mii.hasNext()) {
+            			MethodInvocationObject mio = mii.next();
+            			int pos = systemObject.getPositionInClassList(mio.getOriginClassName());
+            			if(pos != -1 && !belongInSameHierarchy(co.getName(),mio.getOriginClassName()) && !mio.getMethodName().equals("<init>")) {
+            				MethodObject temp = systemObject.getClassObject(pos).getMethod(mio.getSignature());
+            				if(temp != null && temp.isAbstract()) {
+            					List<FieldObject> fields = getFieldsOfClassAccessedInMethodCallingMethodInvocation(co, mo, mio);
+            					if(!fields.isEmpty()) {
+            						m[counter][pos] = 1;
+            						behavioralData.addMethod(counter, pos, mo);
+            						for(FieldObject field : fields) {
+            							behavioralData.addField(counter, pos, field);
+            						}
+            						//break;
+            					}
+            				}
+            			}
+            		}
+            	}
+            }
+            counter++;
+        }
+        matrixContainer.setAbstractMethodInvocationFromConcreteClassMatrix(m);
+        matrixContainer.setAbstractMethodInvocationFromConcreteClassBehavioralData(behavioralData);
     }
 
 	private List<FieldObject> getFieldsOfClassAccessedInMethodCallingMethodInvocation(ClassObject co, AbstractMethodDeclaration mo, MethodInvocationObject mio) {
@@ -1012,11 +1053,17 @@ public class SystemGenerator {
         Object[] abstractOutput = generateHierarchiesMatrix(hierarchiesClassNameList, getMatrixContainer().getAbstractMatrix(), null);
         hierarchiesMatrixContainer.setAbstractMatrix((double[][])abstractOutput[0]);
 
-        Object[] abstractMethodInvocationOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
-        		getMatrixContainer().getAbstractMethodInvocationMatrix(),
-        		getMatrixContainer().getAbstractMethodInvocationBehavioralData());
-        hierarchiesMatrixContainer.setAbstractMethodInvocationMatrix((double[][])abstractMethodInvocationOutput[0]);
-        hierarchiesMatrixContainer.setAbstractMethodInvocationBehavioralData((BehavioralData)abstractMethodInvocationOutput[1]);
+        Object[] abstractMethodInvocationFromAbstractClassOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
+        		getMatrixContainer().getAbstractMethodInvocationFromAbstractClassMatrix(),
+        		getMatrixContainer().getAbstractMethodInvocationFromAbstractClassBehavioralData());
+        hierarchiesMatrixContainer.setAbstractMethodInvocationFromAbstractClassMatrix((double[][])abstractMethodInvocationFromAbstractClassOutput[0]);
+        hierarchiesMatrixContainer.setAbstractMethodInvocationFromAbstractClassBehavioralData((BehavioralData)abstractMethodInvocationFromAbstractClassOutput[1]);
+
+        Object[] abstractMethodInvocationFromConcreteClassOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
+        		getMatrixContainer().getAbstractMethodInvocationFromConcreteClassMatrix(),
+        		getMatrixContainer().getAbstractMethodInvocationFromConcreteClassBehavioralData());
+        hierarchiesMatrixContainer.setAbstractMethodInvocationFromConcreteClassMatrix((double[][])abstractMethodInvocationFromConcreteClassOutput[0]);
+        hierarchiesMatrixContainer.setAbstractMethodInvocationFromConcreteClassBehavioralData((BehavioralData)abstractMethodInvocationFromConcreteClassOutput[1]);
 
         Object[] similarAbstractMethodInvocationOutput = generateHierarchiesMatrix(hierarchiesClassNameList,
         		getMatrixContainer().getSimilarAbstractMethodInvocationMatrix(),

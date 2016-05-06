@@ -15,6 +15,9 @@ public class PatternGenerator {
         else if(patternName.equals(PatternEnum.STATE_STRATEGY.toString())) {
             return getStatePattern();
         }
+        else if(patternName.equals(PatternEnum.BRIDGE.toString())) {
+        	return getBridgePattern();
+        }
         else if(patternName.equals(PatternEnum.OBSERVER.toString())) {
             return getObserverPattern();
         }
@@ -190,7 +193,7 @@ public class PatternGenerator {
 
         double[][] abminvMatrix = new double[2][2];
         abminvMatrix[0][1] = 1;
-        patternDescriptor.setAbstractMethodInvocationMatrix(abminvMatrix);
+        patternDescriptor.setAbstractMethodInvocationFromConcreteClassMatrix(abminvMatrix);
 
         patternDescriptor.setNumberOfHierarchies(2);
 
@@ -200,6 +203,39 @@ public class PatternGenerator {
         patternDescriptor.setDivisorArray(divisorArray);
         patternDescriptor.setMethodRoleName("Request()");
         patternDescriptor.setFieldRoleName("state/strategy");
+
+        return patternDescriptor;
+    }
+
+    public static PatternDescriptor getBridgePattern() {
+        PatternDescriptor patternDescriptor = new PatternDescriptor();
+
+        List<String> rowNameList = new ArrayList<String>();
+        rowNameList.add("Abstraction");
+        rowNameList.add("Implementor");
+        patternDescriptor.setClassNameList(rowNameList);
+
+        double[][] assocMatrix = new double[2][2];
+        assocMatrix[0][1] = 1;
+        patternDescriptor.setAssociationMatrix(assocMatrix);
+
+        double[][] abMatrix = new double[2][2];
+        abMatrix[0][0] = 1;
+        abMatrix[1][1] = 1;
+        patternDescriptor.setAbstractMatrix(abMatrix);
+
+        double[][] abminvMatrix = new double[2][2];
+        abminvMatrix[0][1] = 1;
+        patternDescriptor.setAbstractMethodInvocationFromAbstractClassMatrix(abminvMatrix);
+
+        patternDescriptor.setNumberOfHierarchies(2);
+
+        int[] divisorArray = new int[2];
+        divisorArray[0] = 3;
+        divisorArray[1] = 3;
+        patternDescriptor.setDivisorArray(divisorArray);
+        patternDescriptor.setMethodRoleName("Operation()");
+        patternDescriptor.setFieldRoleName("implementor");
 
         return patternDescriptor;
     }
