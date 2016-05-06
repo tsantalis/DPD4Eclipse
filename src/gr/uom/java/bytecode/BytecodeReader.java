@@ -35,7 +35,7 @@ public class BytecodeReader {
                 else if (afile.getName().toLowerCase().endsWith(".class")) {
                 	if(monitor != null && monitor.isCanceled())
 		    			throw new OperationCanceledException();
-                    so.addClass(parseBytecode(afile));
+                    parseBytecode(afile);
                     if(monitor != null)
 						monitor.worked(1);
                 }
@@ -44,7 +44,7 @@ public class BytecodeReader {
 		else if(file.getName().toLowerCase().endsWith(".class")) {
 			if(monitor != null && monitor.isCanceled())
     			throw new OperationCanceledException();
-			so.addClass(parseBytecode(file));
+			parseBytecode(file);
 			if(monitor != null)
 				monitor.worked(1);
 		}
@@ -67,7 +67,7 @@ public class BytecodeReader {
 		return count;
 	}
 
-	private ClassObject parseBytecode(File file) {
+	private void parseBytecode(File file) {
 		final ClassObject co = new ClassObject();
 		try {
 			FileInputStream fin = new FileInputStream(file);
@@ -95,7 +95,13 @@ public class BytecodeReader {
                     co.setStatic(true);
 
             String superClass = cn.superName;
-    		co.setSuperclass(superClass.replaceAll("/", "."));
+            boolean extendsTestCase = false;
+            if(superClass != null) {
+            	co.setSuperclass(superClass.replaceAll("/", "."));
+            	if(superClass.equals("junit/framework/TestCase")) {
+            		extendsTestCase = true;
+            	}
+            }
     		
     		List interfaces = cn.interfaces;
             for (Object anInterface : interfaces) {
@@ -131,9 +137,14 @@ public class BytecodeReader {
             }
     		
     		List methods = cn.methods;
+    		boolean containsTestMethod = false;
             for (Object method : methods) {
                 MethodNode methodNode = (MethodNode) method;
-
+                MethodAnnotationScanner methodAnnotationScanner = new MethodAnnotationScanner();
+				methodNode.accept(methodAnnotationScanner);
+				if(methodAnnotationScanner.isTestMethod()) {
+					containsTestMethod = true;
+				}
                 final ConstructorObject constructorObject = new ConstructorObject();
 
                 if ((methodNode.access & Opcodes.ACC_PUBLIC) != 0)
@@ -279,14 +290,14 @@ public class BytecodeReader {
                         methodObject.setStatic(true);
                     co.addMethod(methodObject);
                 }
-
+            }
+            if(!containsTestMethod && !extendsTestCase) {
+            	so.addClass(co);
             }
             fin.close();
 		}
 		catch(FileNotFoundException fnfe) {fnfe.printStackTrace();}
 		catch(IOException ioe) {ioe.printStackTrace();}
-		
-		return co;
 	}
 
     public static SystemObject getSystemObject() {

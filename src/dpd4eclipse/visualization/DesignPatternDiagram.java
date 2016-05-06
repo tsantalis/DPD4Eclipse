@@ -66,7 +66,7 @@ public class DesignPatternDiagram {
 			
 			int classWidth = 450;
 			boolean oneSection = false;
-			if(internalMethodInvocationMap.isEmpty()) {
+			if(internalMethodInvocationMap.isEmpty() || patternMethods.containsAll(methods)) {
 				oneSection = true;
 				classWidth = 200;
 			}
