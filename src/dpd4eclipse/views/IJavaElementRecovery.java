@@ -20,6 +20,7 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.Signature;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
+import org.eclipse.jdt.internal.ui.JavaPluginImages;
 import org.eclipse.jdt.internal.ui.viewsupport.JavaElementImageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
@@ -227,5 +228,9 @@ public class IJavaElementRecovery {
 	
 	public static Image getImage(IJavaElement javaElement) {
 		return JavaPlugin.getImageDescriptorRegistry().get(getImageDescriptor(javaElement));
+	}
+	
+	public static Image getJavaModelIcon() {
+		return JavaPlugin.getImageDescriptorRegistry().get(JavaPluginImages.DESC_OBJS_JAVA_MODEL);
 	}
 }

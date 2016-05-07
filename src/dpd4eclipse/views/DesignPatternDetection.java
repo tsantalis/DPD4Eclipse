@@ -183,7 +183,13 @@ public class DesignPatternDetection extends ViewPart {
 		}
 		public Image getColumnImage(Object obj, int index) {
 			Image image = null;
-			if(obj instanceof PatternInstance.Entry) {
+			if(obj instanceof PatternInstance) {
+				switch (index) {
+				case 0:
+					image = IJavaElementRecovery.getJavaModelIcon();
+				}
+			}
+			else if(obj instanceof PatternInstance.Entry) {
 				PatternInstance.Entry entry = (PatternInstance.Entry)obj;
 				RoleType roleType = entry.getRoleType();
 				String elementFullName = entry.getElementName();
