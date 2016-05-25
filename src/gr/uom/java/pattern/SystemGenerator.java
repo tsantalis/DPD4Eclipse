@@ -18,7 +18,6 @@ public class SystemGenerator {
     private MatrixContainer matrixContainer;
     private SystemObject systemObject;
     private List<Enumeratable> hierarchyList;
-    private ClusterSet clusterSet;
 
     public SystemGenerator(SystemObject systemObject) {
         this.systemObject = systemObject;
@@ -45,8 +44,6 @@ public class SystemGenerator {
         singletonMatrix();
         templateMethodMatrix();
         factoryMethodMatrix();
-
-        this.clusterSet = generateClusterSet();
     }
 
     public List<Enumeratable> getHierarchyList() {
@@ -55,10 +52,6 @@ public class SystemGenerator {
 
     public MatrixContainer getMatrixContainer() {
         return this.matrixContainer;
-    }
-
-    public ClusterSet getClusterSet() {
-        return this.clusterSet;
     }
 
     private boolean belongInSameHierarchy(String className1, String className2) {
@@ -1142,7 +1135,7 @@ public class SystemGenerator {
         return new Object[] {hierarchiesMatrix, hierarchiesBehavioralData};
     }
 
-    private ClusterSet generateClusterSet() {
+    public ClusterSet generateClusterSet(PatternDescriptor patternDescriptor) {
         ClusterSet clusterSet = new ClusterSet();
         double[][] systemAdjacencyMatrix = getMatrixContainer().getMethodInvocationsMatrix();
 
@@ -1153,6 +1146,7 @@ public class SystemGenerator {
                 double sum = 0;
                 Enumeration e1 = ih1.getEnumeration();
                 List<String> ih1NodesChecked = new ArrayList<String>();
+                boolean allRelations = false;
                 while(e1.hasMoreElements()) {
                     String className1 = (String)((DefaultMutableTreeNode)e1.nextElement()).getUserObject();
                     if(!ih1NodesChecked.contains(className1)) {
@@ -1164,20 +1158,81 @@ public class SystemGenerator {
                             String className2 = (String)((DefaultMutableTreeNode)e2.nextElement()).getUserObject();
                             if(!ih2NodesChecked.contains(className2)) {
                                 ih2NodesChecked.add(className2);
-                                if(!className1.equals(className2))
+                                if(!className1.equals(className2)) {
                                     sum = sum + systemAdjacencyMatrix[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)];
+                                    if(clusterWithAllRelations(className1, className2, patternDescriptor)) {
+                                    	allRelations = true;
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                ClusterSet.Entry entry = clusterSet.new Entry();
-                entry.addHierarchy(ih1);
-                entry.addHierarchy(ih2);
-                entry.setNumberOfMethodInvocations((int)sum);
-                clusterSet.addClusterEntry(entry);
+                if(allRelations) {
+                	ClusterSet.Entry entry = clusterSet.new Entry();
+                	entry.addHierarchy(ih1);
+                	entry.addHierarchy(ih2);
+                	entry.setNumberOfMethodInvocations((int)sum);
+                	clusterSet.addClusterEntry(entry);
+                }
             }
         }
 
         return clusterSet;
+    }
+
+    private boolean clusterWithAllRelations(String className1, String className2, PatternDescriptor pattern) {
+    	int totalRelations = 0;
+    	int actualRelations = 0;
+    	if(pattern.getAbstractMethodInvocationFromAbstractClassMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getAbstractMethodInvocationFromAbstractClassMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getAbstractMethodInvocationFromAbstractClassMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getAbstractMethodInvocationFromConcreteClassMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getAbstractMethodInvocationFromConcreteClassMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getAbstractMethodInvocationFromConcreteClassMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getIterativeNonSimilarAbstractMethodInvocationMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getIterativeNonSimilarAbstractMethodInvocationMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getIterativeNonSimilarAbstractMethodInvocationMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getDoubleDispatchMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getDoubleDispatchMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getDoubleDispatchMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getInvokedMethodInInheritedMethodMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getInvokedMethodInInheritedMethodMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getInvokedMethodInInheritedMethodMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getCloneInvocationMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getCloneInvocationMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getCloneInvocationMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	if(pattern.getAssociationMatrix() != null) {
+    		totalRelations++;
+    		if(getMatrixContainer().getAssociationMatrix()[systemObject.getPositionInClassList(className1)][systemObject.getPositionInClassList(className2)] == 1 ||
+    				getMatrixContainer().getAssociationMatrix()[systemObject.getPositionInClassList(className2)][systemObject.getPositionInClassList(className1)] == 1) {
+    			actualRelations++;
+    		}
+    	}
+    	return totalRelations == actualRelations;
     }
 }

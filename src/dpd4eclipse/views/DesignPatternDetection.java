@@ -507,7 +507,6 @@ public class DesignPatternDetection extends ViewPart {
 		new BytecodeReader(activeProject, inputDir, monitor);
 		SystemObject so = BytecodeReader.getSystemObject();
 		SystemGenerator sg = new SystemGenerator(so);
-		SortedSet<ClusterSet.Entry> clusterSet = sg.getClusterSet().getInvokingClusterSet();
 		List<Enumeratable> hierarchyList = sg.getHierarchyList();
 
 		PatternEnum[] patternEnum = PatternEnum.values();
@@ -574,6 +573,7 @@ public class DesignPatternDetection extends ViewPart {
 				}
 			}
 			else if(patternDescriptor.getNumberOfHierarchies() == 2) {
+				SortedSet<ClusterSet.Entry> clusterSet = sg.generateClusterSet(patternDescriptor).getClusterSet();
 				Iterator<ClusterSet.Entry> it = clusterSet.iterator();
 				while(it.hasNext()) {
 					ClusterSet.Entry entry = it.next();

@@ -15,11 +15,7 @@ public class ClusterSet {
         entrySet.add(e);
     }
 
-    public SortedSet<ClusterSet.Entry> getInvokingClusterSet() {
-        for(Entry e : entrySet) {
-            if (e.getNumberOfMethodInvocations() == 0)
-                return entrySet.headSet(e);
-        }
+    public SortedSet<ClusterSet.Entry> getClusterSet() {
         return entrySet;
     }
 
