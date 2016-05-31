@@ -63,6 +63,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 
+import dpd4eclipse.topic.TopicFinder;
 import dpd4eclipse.visualization.DesignPatternVisualizationData;
 
 /**
@@ -163,7 +164,8 @@ public class DesignPatternDetection extends ViewPart {
 				PatternInstance patternInstance = (PatternInstance)obj;
 				switch (index) {
 				case 0:
-					return "Instance " + patternInstance.getInstanceCounter();
+					TopicFinder topicFinder = new TopicFinder(patternInstance);
+					return "Instance " + patternInstance.getInstanceCounter() + " " + topicFinder.getTopics();
 				default:
 					return "";
 				}
