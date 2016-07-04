@@ -37,6 +37,8 @@ public class MatrixContainer {
     protected BehavioralData templateMethodBehavioralData;
     protected double[][] factoryMethodMatrix;
     protected BehavioralData factoryMethodBehavioralData;
+    protected double[][] chainOfResponsibilityMatrix;
+    protected BehavioralData chainOfResponsibilityBehavioralData;
 
     public void setGeneralizationMatrix(double[][] m) {
 		this.generalizationMatrix = m;
@@ -300,5 +302,21 @@ public class MatrixContainer {
 
 	public BehavioralData getFactoryMethodBehavioralData() {
 		return factoryMethodBehavioralData;
+	}
+
+	public double[][] getChainOfResponsibilityMatrix() {
+		return this.chainOfResponsibilityMatrix;
+	}
+
+	public void setChainOfResponsibilityMatrix(double[][] m) {
+		this.chainOfResponsibilityMatrix = m;
+	}
+
+	public BehavioralData getChainOfResponsibilityBehavioralData() {
+		return this.chainOfResponsibilityBehavioralData;
+	}
+
+	public void setChainOfResponsibilityBehavioralData(BehavioralData behavioralData) {
+		this.chainOfResponsibilityBehavioralData = behavioralData;
 	}
 }

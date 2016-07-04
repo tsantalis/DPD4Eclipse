@@ -45,6 +45,9 @@ public class PatternGenerator {
         else if(patternName.equals(PatternEnum.PROXY2.toString())) {
         	return getProxy2Pattern();
         }
+        else if(patternName.equals(PatternEnum.CHAIN_OF_RESPONSIBILITY.toString())) {
+        	return getChainOfResponsibilityPattern();
+        }
         /*else if(patternName.equals(PatternEnum.REDIRECT_IN_FAMILY.toString())) {
         	return getRedirectInFamily();
         }*/
@@ -61,6 +64,18 @@ public class PatternGenerator {
 
         patternDescriptor.setNumberOfHierarchies(0);
         patternDescriptor.setFieldRoleName("uniqueInstance");
+        return patternDescriptor;
+    }
+
+    public static PatternDescriptor getChainOfResponsibilityPattern() {
+        PatternDescriptor patternDescriptor = new PatternDescriptor();
+
+        List<String> rowNameList = new ArrayList<String>();
+        rowNameList.add("Handler");
+        patternDescriptor.setClassNameList(rowNameList);
+
+        patternDescriptor.setNumberOfHierarchies(0);
+        patternDescriptor.setFieldRoleName("successor");
         return patternDescriptor;
     }
 

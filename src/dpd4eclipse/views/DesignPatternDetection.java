@@ -539,6 +539,10 @@ public class DesignPatternDetection extends ViewPart {
 					systemMatrix = systemContainer.getFactoryMethodMatrix();
 					behavioralData = systemContainer.getFactoryMethodBehavioralData();
 				}
+				else if(patternName.equals(PatternEnum.CHAIN_OF_RESPONSIBILITY.toString())) {
+					systemMatrix = systemContainer.getChainOfResponsibilityMatrix();
+					behavioralData = systemContainer.getChainOfResponsibilityBehavioralData();
+				}
 
 				for(int j=0; j<systemMatrix.length; j++) {
 					if(systemMatrix[j][j] == 1.0) {

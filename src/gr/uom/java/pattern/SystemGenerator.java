@@ -42,6 +42,7 @@ public class SystemGenerator {
         iterativeSimilarAbstractMethodInvocationMatrix();
         cloneInvocationMatrix();
         singletonMatrix();
+        chainOfResponsibilityMatrix();
         templateMethodMatrix();
         factoryMethodMatrix();
     }
@@ -200,6 +201,32 @@ public class SystemGenerator {
         }
         matrixContainer.setSingletonMatrix(m);
         matrixContainer.setSingletonBehavioralData(behavioralData);
+    }
+
+    private void chainOfResponsibilityMatrix() {
+        ListIterator<ClassObject> it = systemObject.getClassListIterator();
+        double[][] m = new double[systemObject.getClassNumber()][systemObject.getClassNumber()];
+        BehavioralData behavioralData = new BehavioralData();
+        int counter = 0;
+
+        while(it.hasNext()) {
+            ClassObject co = it.next();
+
+            if(!co.isEnum()) {
+            	ListIterator<FieldObject> fieldIt = co.getFieldIterator();
+            	while(fieldIt.hasNext()) {
+            		FieldObject fo = fieldIt.next();
+            		TypeObject type = fo.getType();
+            		if(type.getClassType().equals(co.getName()) && !fo.isStatic() && co.isAbstract()) {
+            			m[counter][counter] = 1;
+            			behavioralData.addField(counter, counter, fo);
+            		}
+            	}
+            }
+            counter++;
+        }
+        matrixContainer.setChainOfResponsibilityMatrix(m);
+        matrixContainer.setChainOfResponsibilityBehavioralData(behavioralData);
     }
 
     private void templateMethodMatrix() {
