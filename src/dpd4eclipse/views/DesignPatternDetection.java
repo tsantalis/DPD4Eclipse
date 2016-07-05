@@ -513,8 +513,10 @@ public class DesignPatternDetection extends ViewPart {
 
 		PatternEnum[] patternEnum = PatternEnum.values();
 		PatternResult[] patternResults = new PatternResult[patternEnum.length];
+		PatternResult[] additionalPatternResults = new PatternResult[2];
 		if(monitor != null)
 			monitor.beginTask("Detecting design patterns", patternEnum.length);
+		int additionalPatternResultsIndex = 0;
 		for(int i=0; i<patternEnum.length; i++) {
 			if(monitor != null && monitor.isCanceled())
 				throw new OperationCanceledException();
@@ -587,13 +589,48 @@ public class DesignPatternDetection extends ViewPart {
 					generateResults(hierarchiesMatrixContainer, patternDescriptor, patternResult);
 				}
 			}
-			patternResults[i] = patternResult;
+			if(patternName.contains("-")) {
+				String[] patternNames = patternName.split("-");
+				String firstPatternName = patternNames[0];
+				String secondPatternName = patternNames[1];
+				
+				PatternResult firstPatternResult = new PatternResult(firstPatternName);
+				PatternResult secondPatternResult = new PatternResult(secondPatternName);
+				for(PatternInstance patternInstance : patternResult.getPatternInstances()) {
+					Set<PatternInstance.Entry> entries = patternInstance.getEntrySet();
+					boolean isSecondPattern = false;
+					for(PatternInstance.Entry entry : entries) {
+						if(entry.getRoleType().equals(RoleType.CLASS) && entry.getRoleName().contains(secondPatternName)) {
+							isSecondPattern = true;
+							break;
+						}
+					}
+					if(isSecondPattern) {
+						secondPatternResult.addInstance(patternInstance);
+					}
+					else {
+						firstPatternResult.addInstance(patternInstance);
+					}
+				}
+				patternResults[i] = firstPatternResult;
+				additionalPatternResults[additionalPatternResultsIndex] = secondPatternResult;
+				additionalPatternResultsIndex++;
+			}
+			else {
+				patternResults[i] = patternResult;
+			}
 			if(monitor != null)
 				monitor.worked(1);
 		}
 		if(monitor != null)
 			monitor.done();
-		return patternResults;
+		//merge the two arrays
+		int aLen = patternResults.length;
+		int bLen = additionalPatternResults.length;
+		PatternResult[] merged = new PatternResult[aLen+bLen];
+		System.arraycopy(patternResults, 0, merged, 0, aLen);
+		System.arraycopy(additionalPatternResults, 0, merged, aLen, bLen);
+		return merged;
 	}
 
 	private void generateResults(MatrixContainer systemContainer, PatternDescriptor patternDescriptor, PatternResult patternResult) {

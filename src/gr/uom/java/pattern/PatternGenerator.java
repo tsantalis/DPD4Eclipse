@@ -216,7 +216,7 @@ public class PatternGenerator {
         divisorArray[0] = 2;
         divisorArray[1] = 3;
         patternDescriptor.setDivisorArray(divisorArray);
-        patternDescriptor.setMethodRoleName("Request()");
+        patternDescriptor.setMethodRoleName("Request()/ContextInterface()");
         patternDescriptor.setFieldRoleName("state/strategy");
 
         return patternDescriptor;

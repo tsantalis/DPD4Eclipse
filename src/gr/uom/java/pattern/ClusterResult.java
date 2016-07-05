@@ -6,6 +6,8 @@ import gr.uom.java.pattern.PatternInstance.RoleType;
 
 import java.util.*;
 
+import dpd4eclipse.topic.HumaniseCamelCase;
+
 public class ClusterResult {
     private TreeSet<ClusterResult.Entry> entrySet;
     private PatternDescriptor patternDescriptor;
@@ -85,8 +87,23 @@ public class ClusterResult {
 	        	if(tuple.getRelationshipScore() == maxRelationshipScore && tuple.getRelationshipScore() > 0) {
 	        		List<Entry> roleEntries = tuple.getRoleEntries();
 	        		PatternInstance instance = new PatternInstance();
+	        		boolean isSecondRole = determineActualRoleForDualPattern(roleEntries);
 	        		for(Entry roleEntry : roleEntries) {
-	        			instance.addEntry(instance.new Entry(RoleType.CLASS, roleEntry.getRole(), roleEntry.getClassName(), roleEntry.getPosition()));
+	        			if(roleEntry.getRole().contains("/")) {
+	        				String[] roleNames = roleEntry.getRole().split("/");
+	        				String firstRoleName = roleNames[0];
+	        				String secondRoleName = roleNames[1];
+	        				if(isSecondRole) {
+	        					instance.addEntry(instance.new Entry(RoleType.CLASS, secondRoleName, roleEntry.getClassName(), roleEntry.getPosition()));
+	        					isSecondRole = true;
+	        				}
+	        				else {
+	        					instance.addEntry(instance.new Entry(RoleType.CLASS, firstRoleName, roleEntry.getClassName(), roleEntry.getPosition()));
+	        				}
+	        			}
+	        			else {
+	        				instance.addEntry(instance.new Entry(RoleType.CLASS, roleEntry.getRole(), roleEntry.getClassName(), roleEntry.getPosition()));
+	        			}
 	        		}
 	        		for(int i=0; i<roleEntries.size(); i++) {
 	        			Entry roleEntry1 = roleEntries.get(i);
@@ -96,13 +113,39 @@ public class ClusterResult {
 	        				if(patternDescriptor.getFieldRoleName() != null) {
 	        					Set<FieldObject> fields = (Set<FieldObject>)mergeOutput[0];
 	        					for(FieldObject field : fields) {
-	        						instance.addEntry(instance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.getSignature(), -1));
+	        						if(patternDescriptor.getFieldRoleName().contains("/")) {
+	        							String[] roleNames = patternDescriptor.getFieldRoleName().split("/");
+	        	        				String firstRoleName = roleNames[0];
+	        	        				String secondRoleName = roleNames[1];
+	        							if(isSecondRole) {
+	        								instance.addEntry(instance.new Entry(RoleType.FIELD, secondRoleName, field.getSignature(), -1));
+	        							}
+	        							else {
+	        								instance.addEntry(instance.new Entry(RoleType.FIELD, firstRoleName, field.getSignature(), -1));
+	        							}
+	        						}
+	        						else {
+	        							instance.addEntry(instance.new Entry(RoleType.FIELD, patternDescriptor.getFieldRoleName(), field.getSignature(), -1));
+	        						}
 	        					}
 	        				}
 	        				if(patternDescriptor.getMethodRoleName() != null) {
 	        					Set<AbstractMethodDeclaration> methods = (Set<AbstractMethodDeclaration>)mergeOutput[1];
 	        					for(AbstractMethodDeclaration method : methods) {
-	        						instance.addEntry(instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+	        						if(patternDescriptor.getMethodRoleName().contains("/")) {
+	        							String[] roleNames = patternDescriptor.getMethodRoleName().split("/");
+	        	        				String firstRoleName = roleNames[0];
+	        	        				String secondRoleName = roleNames[1];
+	        	        				if(isSecondRole) {
+	        	        					instance.addEntry(instance.new Entry(RoleType.METHOD, secondRoleName, method.getSignature().toString(), -1));
+	        	        				}
+	        	        				else {
+	        	        					instance.addEntry(instance.new Entry(RoleType.METHOD, firstRoleName, method.getSignature().toString(), -1));
+	        	        				}
+	        						}
+	        						else {
+	        							instance.addEntry(instance.new Entry(RoleType.METHOD, patternDescriptor.getMethodRoleName(), method.getSignature().toString(), -1));
+	        						}
 	        					}
 	        				}
 	        			}
@@ -113,6 +156,46 @@ public class ClusterResult {
         }
 
         return patternInstanceList;
+    }
+
+	private boolean determineActualRoleForDualPattern(List<Entry> roleEntries) {
+		//special handling for distinguishing dual patterns, such as Adapter from Command
+		for(Entry roleEntry : roleEntries) {
+			if(roleEntry.getRole().contains("/")) {
+				String[] roleNames = roleEntry.getRole().split("/");
+				String secondRoleName = roleNames[1];
+				if(match(secondRoleName, roleEntry.getClassName())) {
+					return true;
+				}
+				/*ClassObject classObject = BytecodeReader.getSystemObject().getClassObject(roleEntry.getClassName());
+				if(classObject != null && patternDescriptor.getMethodRoleName().contains("/")) {
+					String[] methodRoleNames = patternDescriptor.getMethodRoleName().split("/");
+					//remove () from the end if necessary
+        			String firstMethodRoleName = methodRoleNames[0].contains("()") ? methodRoleNames[0].substring(0, methodRoleNames[0].indexOf("()")) : methodRoleNames[0];
+        			String secondMethodRoleName = methodRoleNames[1].contains("()") ? methodRoleNames[1].substring(0, methodRoleNames[1].indexOf("()")) : methodRoleNames[1];
+        			ListIterator<MethodObject> methodIt = classObject.getMethodIterator();
+        			while(methodIt.hasNext()) {
+        				MethodObject method = methodIt.next();
+        				if(match(secondMethodRoleName, method.getName())) {
+        					return true;
+        				}
+        			}
+				}*/
+			}
+		}
+		return false;
+	}
+
+    private boolean match(String roleName, String actualName) {
+    	HumaniseCamelCase humaniser = new HumaniseCamelCase();
+    	String[] camelCaseTokens = humaniser.humanise(roleName).split("\\s");
+    	for(String camelCaseToken : camelCaseTokens) {
+			String lowerCaseToken = camelCaseToken.toLowerCase();
+			if(actualName.toLowerCase().contains(lowerCaseToken)) {
+				return true;
+			}
+    	}
+    	return false;
     }
 
     private int relationshipScore(ClusterResult.Entry e1, ClusterResult.Entry e2) {
