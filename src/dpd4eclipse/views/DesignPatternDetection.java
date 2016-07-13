@@ -512,11 +512,9 @@ public class DesignPatternDetection extends ViewPart {
 		List<Enumeratable> hierarchyList = sg.getHierarchyList();
 
 		PatternEnum[] patternEnum = PatternEnum.values();
-		PatternResult[] patternResults = new PatternResult[patternEnum.length];
-		PatternResult[] additionalPatternResults = new PatternResult[2];
+		List<PatternResult> patternResults = new ArrayList<PatternResult>();
 		if(monitor != null)
 			monitor.beginTask("Detecting design patterns", patternEnum.length);
-		int additionalPatternResultsIndex = 0;
 		for(int i=0; i<patternEnum.length; i++) {
 			if(monitor != null && monitor.isCanceled())
 				throw new OperationCanceledException();
@@ -612,25 +610,20 @@ public class DesignPatternDetection extends ViewPart {
 						firstPatternResult.addInstance(patternInstance);
 					}
 				}
-				patternResults[i] = firstPatternResult;
-				additionalPatternResults[additionalPatternResultsIndex] = secondPatternResult;
-				additionalPatternResultsIndex++;
+				patternResults.add(firstPatternResult);
+				patternResults.add(secondPatternResult);
 			}
 			else {
-				patternResults[i] = patternResult;
+				patternResults.add(patternResult);
 			}
 			if(monitor != null)
 				monitor.worked(1);
 		}
 		if(monitor != null)
 			monitor.done();
-		//merge the two arrays
-		int aLen = patternResults.length;
-		int bLen = additionalPatternResults.length;
-		PatternResult[] merged = new PatternResult[aLen+bLen];
-		System.arraycopy(patternResults, 0, merged, 0, aLen);
-		System.arraycopy(additionalPatternResults, 0, merged, aLen, bLen);
-		return merged;
+		
+		PatternResult[] results = new PatternResult[patternResults.size()];
+		return patternResults.toArray(results);
 	}
 
 	private void generateResults(MatrixContainer systemContainer, PatternDescriptor patternDescriptor, PatternResult patternResult) {
