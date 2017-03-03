@@ -160,8 +160,12 @@ public class BytecodeReader {
                     r.accept(v);
                     String declaration = v.getDeclaration();
                     String temp = declaration;
+                    if(temp.startsWith("<K, V>"))
+                    	temp = temp.substring(6, temp.length());
+                    if(temp.startsWith("<T>"))
+                    	temp = temp.substring(3, temp.length());
                     if(temp.startsWith("("))
-                    	temp = temp.substring(1,temp.length());
+                    	temp = temp.substring(1, temp.length());
                     if(temp.endsWith(""))
                     	temp = temp.substring(0, temp.length()-1);
                     if(!temp.equals("")) {

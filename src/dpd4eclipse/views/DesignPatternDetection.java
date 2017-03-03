@@ -223,8 +223,13 @@ public class DesignPatternDetection extends ViewPart {
 						if(sourceJavaElement != null) {
 							IType type = IJavaElementRecovery.getIType(sourceJavaElement, qualifiedClassName);
 							if(type != null) {
-								IMethod method = IJavaElementRecovery.getIMethod(type, methodFullSignature);
-								image = IJavaElementRecovery.getImage(method);
+								if(methodFullSignature.startsWith("lambda$")) {
+									image = IJavaElementRecovery.getLambdaIcon();
+								}
+								else {
+									IMethod method = IJavaElementRecovery.getIMethod(type, methodFullSignature);
+									image = IJavaElementRecovery.getImage(method);
+								}
 							}
 						}
 					}

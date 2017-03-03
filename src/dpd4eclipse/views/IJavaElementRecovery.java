@@ -87,7 +87,7 @@ public class IJavaElementRecovery {
 					String[] parameterTypes = iMethod.getParameterTypes();
 					String nonQualifiedReturnType = Signature.toString(returnType);
 					boolean returnTypeMatch = false;
-					if(equalTypes(qualifiedReturnType, nonQualifiedReturnType)) {
+					if(equalTypes(qualifiedReturnType, nonQualifiedReturnType) || qualifiedReturnType.equals("java.lang.Object")) {
 						returnTypeMatch = true;
 					}
 					boolean parameterTypesMatch = true;
@@ -232,5 +232,9 @@ public class IJavaElementRecovery {
 	
 	public static Image getJavaModelIcon() {
 		return JavaPlugin.getImageDescriptorRegistry().get(JavaPluginImages.DESC_OBJS_JAVA_MODEL);
+	}
+
+	public static Image getLambdaIcon() {
+		return JavaPlugin.getImageDescriptorRegistry().get(JavaPluginImages.DESC_OBJS_TEMPLATE);
 	}
 }
