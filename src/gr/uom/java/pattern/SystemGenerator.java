@@ -186,7 +186,7 @@ public class SystemGenerator {
         while(it.hasNext()) {
             ClassObject co = it.next();
 
-            if(!co.isEnum()) {
+            if(!co.isEnumWithMultipleConstants()) {
             	ListIterator<FieldObject> fieldIt = co.getFieldIterator();
             	while(fieldIt.hasNext()) {
             		FieldObject fo = fieldIt.next();

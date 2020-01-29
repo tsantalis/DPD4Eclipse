@@ -250,6 +250,19 @@ public class ClassObject {
     	return this._enum;
     }
     
+    public boolean isEnumWithMultipleConstants() {
+    	if(this._enum) {
+	    	int namedConstantsCount = 0;
+	    	for(FieldObject field : fieldList) {
+	    		if(!field.getName().equals("ENUM$VALUES")) {
+	    			namedConstantsCount++;
+	    		}
+	    	}
+	    	return namedConstantsCount > 1;
+    	}
+    	return false;
+    }
+    
     public void setEnum(boolean e) {
     	this._enum = e;
     }
