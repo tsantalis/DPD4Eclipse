@@ -254,7 +254,8 @@ public class ClassObject {
     	if(this._enum) {
 	    	int namedConstantsCount = 0;
 	    	for(FieldObject field : fieldList) {
-	    		if(!field.getName().equals("ENUM$VALUES")) {
+	    		if(!field.getName().equals("ENUM$VALUES") &&
+	    				field.getType().getClassType().equals(this.getName())) {
 	    			namedConstantsCount++;
 	    		}
 	    	}
