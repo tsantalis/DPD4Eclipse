@@ -188,13 +188,17 @@ public class SystemGenerator {
 
             if(!co.isEnumWithMultipleConstants()) {
             	ListIterator<FieldObject> fieldIt = co.getFieldIterator();
+            	List<FieldObject> singletons = new ArrayList<FieldObject>();
             	while(fieldIt.hasNext()) {
             		FieldObject fo = fieldIt.next();
             		TypeObject type = fo.getType();
             		if(type.getClassType().equals(co.getName()) && fo.isStatic()) {
-            			m[counter][counter] = 1;
-            			behavioralData.addField(counter, counter, fo);
+            			singletons.add(fo);
             		}
+            	}
+            	if(singletons.size() == 1) {
+            		m[counter][counter] = 1;
+        			behavioralData.addField(counter, counter, singletons.get(0));
             	}
             }
             counter++;
