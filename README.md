@@ -26,6 +26,8 @@ The supported design patterns are:
 
 ![Screenshot from 2022-02-26 17-11-35](https://user-images.githubusercontent.com/1483516/155861037-74e6822d-35e9-4b6e-a67a-1ed4f6460bee.png)
 
+![Screenshot from 2022-03-06 08-32-29](https://user-images.githubusercontent.com/1483516/156925528-8c7d1592-a531-4301-a9ac-0268a90d6dfb.png)
+
 # Related research
 
 N. Tsantalis, A. Chatzigeorgiou, G. Stephanides, S. T. Halkidis, "[Design Pattern Detection Using Similarity Scoring](https://users.encs.concordia.ca/~nikolaos/publications/TSE_2006.pdf)," IEEE Transactions on Software Engineering, vol. 32, no. 11, pp. 896-909, November, 2006.
