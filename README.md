@@ -20,6 +20,15 @@ The supported design patterns are:
 15. Proxy variation
 16. Chain of Responsibility
 
+# How to run the plug-in
+
+1. Clone the DPD4Eclipse repository
+2. Import the project into Eclipse: File -> Import... -> General -> Existing Projects into Workspace
+3. Right-click on the project and select: Run as -> Eclipse Application
+4. This will open a second Eclipse IDE window with the DPD4Eclipse plug-in installed in it.
+5. In the second Eclipse IDE window select: Window -> Show View -> Other... -> Design Pattern Detection (folder in Show View dialog) -> Design Pattern Detection
+6. Import a project in the second Eclipse IDE window, select the project in the Package Explorer, and then click on the **i** button (Detect Design Patterns) on the Design Pattern Detection view.
+
 # Key features
 - Double-clicking on a detected design pattern instance role, opens the corresponding program element (class, method, field) in the Eclipse editor.
 - Each design pattern instance can be visualized in a hybrid UML Class diagram showing the dependencies between the program elements participating in the design pattern instance.
